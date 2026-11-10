@@ -46,6 +46,67 @@ user documentation for setup.
 
 Check the privilege from **Site admin → Reports → SQL Report → Run database view privilege test**.
 
+### SQL validation
+
+PostgreSQL queries are syntax-checked with the bundled Composer library
+[`sad_spirit/pg_builder`](https://github.com/sad-spirit/pg-builder) after Moodle
+table placeholders and SQL tokens are compiled. Its abstract syntax tree is
+checked recursively for read-only query structure, denied tables/columns,
+schema-qualified tables and explicit row locks (including `FOR SHARE`).
+Both parsers also reject PostgreSQL XML query/table/schema/database/cursor export
+functions, whose hidden reads would bypass the table and column checks. This
+includes `query_to_xml()` even when its SQL argument is escaped or constructed.
+MySQL/MariaDB retains the existing Greenlion parser.
+MySQL, MariaDB and Aurora MySQL also apply recursive source-table, column and
+function checks to its compiled query tree, including subqueries, CTEs and UNION
+branches. Executable comments (`/*! ... */` and `/*M! ... */`), explicit row
+locks, variable assignments (`:=`) and `LOAD_FILE()` are rejected. Ordinary
+comments and optimizer hints remain allowed. Greenlion is non-validating:
+syntax checking still requires the live database, and this does not certify
+every server version or SQL mode.
+The bundled 2.4 release preserves PHP 8.1 compatibility and covers PostgreSQL 16
+query grammar; newer PostgreSQL syntax may be rejected even on a newer server.
+
+Both paths retain the shared regex rules and live database checks. Parsing does
+not verify table/column existence, function signatures, permissions or query
+cost, and is not a guarantee that a SELECT function has no side effects.
+PostgreSQL syntax errors now include the parser's location/context; malformed
+joins receive a parser error rather than the MySQL-specific missing-ON hint.
+The parser dependencies are bundled: site administrators do not need to run
+Composer or install another native extension.
+
+### Updating PHP dependencies
+
+The plugin's root `composer.json` manages both SQL parsers. The root
+`composer.lock` and `vendor/` directory are committed so the plugin remains a
+single installable package, with no Composer step required on the Moodle site.
+Both parsers load through `vendor/autoload.php`.
+
+The plugin's PHPUnit configuration restricts deprecation reporting to its
+first-party source files. This excludes PHP 8.4 implicit-nullability notices from
+the bundled `pg_builder` 2.x without hiding deprecations in plugin code or
+changing production error reporting. Run with the plugin's `phpunit.xml` (as
+Moodle Plugin CI does) to apply this filter.
+
+From the plugin directory, restore the locked dependencies with:
+
+```bash
+composer install --no-dev --prefer-dist
+```
+
+To update the parsers within their supported version constraints:
+
+```bash
+composer update greenlion/php-sql-parser sad_spirit/pg_builder --no-dev --prefer-dist
+```
+
+Keep `sad_spirit/pg_builder` on 2.x to preserve PHP 8.1 compatibility.
+After updates, refresh the versions in `thirdpartylibs.xml` (including the
+Composer runtime entries when regenerating with a newer Composer release), run
+`tests/sql_validator_test.php` and `tests/postgres_validator_test.php` through
+Moodle's PHPUnit runner on PostgreSQL and MySQL/MariaDB, and commit the changed
+lock file and vendor files together.
+
 ## Installation
 
 1. Copy the `sql` folder into `<moodleroot>/report/` (so the plugin lives at `<moodleroot>/report/sql/`).

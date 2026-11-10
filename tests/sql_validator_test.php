@@ -187,10 +187,12 @@ final class sql_validator_test extends \advanced_testcase {
     }
 
     public function test_join_without_on_reports_specific_error(): void {
-        // A JOIN missing its ON condition should raise the dedicated, friendly message
-        // rather than letting the DB return an opaque syntax error.
+        global $DB;
+
         $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage(get_string('errjoinnoon', 'report_sql'));
+        $this->expectExceptionMessage($DB->get_dbfamily() === 'postgres'
+            ? get_string('errparse', 'report_sql', '')
+            : get_string('errjoinnoon', 'report_sql'));
         validator::validate('SELECT u.firstname FROM {user} u JOIN {user_enrolments} ue.userid = u.id');
     }
 
@@ -487,5 +489,76 @@ final class sql_validator_test extends \advanced_testcase {
     public function test_valid_link_token_produces_no_warning(): void {
         validator::validate("SELECT %%LINK(u.id, '/user/view.php?id={}')%% AS profile FROM {user} u");
         $this->assertSame([], validator::get_warnings());
+    }
+
+    /**
+     * A `/*` in one string literal and a `*` `/` in a later one must not pair up as a block comment.
+     *
+     * Stripping block comments before string literals blanks everything between the two literals,
+     * hiding the subquery on the denied config table from every denylist scan.
+     */
+    public function test_comment_markers_in_strings_cannot_hide_denied_table(): void {
+        $this->resetAfterTest();
+        set_config('denytables', validator::default_denytables(), 'report_sql');
+
+        $this->expectException(\moodle_exception::class);
+        validator::validate("SELECT '/*' AS a, (SELECT value FROM {config} LIMIT 1) AS b, '*/' AS c FROM {user}");
+    }
+
+    /**
+     * Functions that run SQL held in a string must be rejected, since the string hides the table from the denylist.
+     *
+     * The E'' escape spells "config" as \x63onfig, so the table name never appears in the SQL text.
+     */
+    public function test_query_to_xml_cannot_run_dynamic_sql(): void {
+        $this->resetAfterTest();
+        set_config('denytables', validator::default_denytables(), 'report_sql');
+
+        $this->expectException(\moodle_exception::class);
+        validator::validate("SELECT query_to_xml(E'select * from mdl_\\x63onfig', true, true, '') FROM {user}");
+    }
+
+    /**
+     * Calls hidden in nested expressions, quoted names and FROM must also be rejected.
+     *
+     * @return array
+     */
+    public static function denied_function_provider(): array {
+        return [
+            'qualified quoted' => ["SELECT pg_catalog.\"query_to_xml\"('select 1', true, true, '')"],
+            'nested' => ["SELECT COALESCE((SELECT query_to_xml('select 1', true, true, '')), NULL)"],
+            'from function' => ["SELECT * FROM query_to_xml('select 1', true, true, '')"],
+            'comment markers' => ["SELECT '/*' AS a, query_to_xml('select 1', true, true, '') AS b, '*/' AS c"],
+            'table exporter' => ["SELECT table_to_xml('config', true, true, '')"],
+            'schema exporter' => ["SELECT schema_to_xml('public', true, true, '')"],
+            'database exporter' => ["SELECT database_to_xml(true, true, '')"],
+            'cursor exporter' => ["SELECT cursor_to_xml('cursorname', 1, true, true, '')"],
+            'query schema' => ["SELECT QUERY_TO_XMLSCHEMA('select 1', true, true, '')"],
+            'query and schema' => ["SELECT query_to_xml_and_xmlschema('select 1', true, true, '')"],
+        ];
+    }
+
+    /**
+     * Forbidden functions fail through the shared entry point on both database families.
+     *
+     * @dataProvider denied_function_provider
+     * @param string $sql Query with a forbidden function call.
+     */
+    public function test_denied_function(string $sql): void {
+        try {
+            validator::validate($sql);
+            $this->fail('Expected function call to be rejected');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('errdeniedfunction', $e->errorcode);
+        }
+    }
+
+    /**
+     * Names in literals, comments and aliases are not function calls.
+     */
+    public function test_function_policy_preserves_plain_xml_and_names(): void {
+        $this->assertNotEmpty(validator::validate("SELECT 'query_to_xml(' AS label /* query_to_xml() */"));
+        $this->assertNotEmpty(validator::validate('SELECT 1 AS query_to_xml'));
+        $this->assertNotEmpty(validator::validate("SELECT xmlconcat('<a/>'::xml, '<b/>'::xml) AS result"));
     }
 }

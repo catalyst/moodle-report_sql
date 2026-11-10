@@ -1,0 +1,150 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "051974acd0e9b6ee1d4445baf5e1c5d1",
+    "packages": [
+        {
+            "name": "greenlion/php-sql-parser",
+            "version": "v4.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/greenlion/PHP-SQL-Parser.git",
+                "reference": "0cd49149efc5868db9c32d1a09558ea516892586"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/greenlion/PHP-SQL-Parser/zipball/0cd49149efc5868db9c32d1a09558ea516892586",
+                "reference": "0cd49149efc5868db9c32d1a09558ea516892586",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "require-dev": {
+                "analog/analog": "^1.0.6",
+                "phpunit/phpunit": "^9.5.13",
+                "squizlabs/php_codesniffer": "^2.8.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "PHPSQLParser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Justin Swanhart",
+                    "email": "greenlion@gmail.com",
+                    "homepage": "http://code.google.com/u/greenlion@gmail.com/",
+                    "role": "Owner"
+                },
+                {
+                    "name": "André Rothe",
+                    "email": "phosco@gmx.de",
+                    "homepage": "https://www.phosco.info",
+                    "role": "Committer"
+                }
+            ],
+            "description": "A pure PHP SQL (non validating) parser w/ focus on MySQL dialect of SQL",
+            "homepage": "https://github.com/greenlion/PHP-SQL-Parser",
+            "keywords": [
+                "creator",
+                "mysql",
+                "parser",
+                "sql"
+            ],
+            "support": {
+                "issues": "https://github.com/greenlion/PHP-SQL-Parser/issues",
+                "source": "https://github.com/greenlion/PHP-SQL-Parser"
+            },
+            "time": "2024-12-02T12:14:07+00:00"
+        },
+        {
+            "name": "sad_spirit/pg_builder",
+            "version": "v2.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sad-spirit/pg-builder.git",
+                "reference": "d9d15715fdf789e6ed2d38471c3f7338062df35f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sad-spirit/pg-builder/zipball/d9d15715fdf789e6ed2d38471c3f7338062df35f",
+                "reference": "d9d15715fdf789e6ed2d38471c3f7338062df35f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "php": ">=7.2.0"
+            },
+            "conflict": {
+                "sad_spirit/pg_wrapper": "<2.4"
+            },
+            "require-dev": {
+                "ext-pdo_pgsql": "*",
+                "ext-pgsql": "*",
+                "phpstan/phpstan": "^1.10.15",
+                "phpunit/phpunit": "^8.0|^9.0",
+                "psr/cache": "^1.0",
+                "sad_spirit/pg_wrapper": "^2.4.0",
+                "vimeo/psalm": "^4.30"
+            },
+            "suggest": {
+                "ext-pdo_pgsql": "Used for running built queries",
+                "psr/cache-implementation": "Used for caching parsed queries",
+                "sad_spirit/pg_wrapper": "Used for DB types conversion and running built queries"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "sad_spirit\\pg_builder\\": "src/sad_spirit/pg_builder",
+                    "sad_spirit\\pg_builder\\rector\\": "rector/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Alexey Borzov",
+                    "email": "avb@php.net"
+                }
+            ],
+            "description": "Query builder for Postgres backed by SQL parser",
+            "keywords": [
+                "ast",
+                "builder",
+                "lexer",
+                "parser",
+                "postgres",
+                "postgresql",
+                "query",
+                "sql"
+            ],
+            "support": {
+                "issues": "https://github.com/sad-spirit/pg-builder/issues",
+                "source": "https://github.com/sad-spirit/pg-builder/tree/v2.4.0"
+            },
+            "time": "2024-05-27T10:41:05+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.1"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

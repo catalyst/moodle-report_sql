@@ -49,6 +49,15 @@ class validator {
         'MAKE_TIMESTAMP', 'MAKE_TIMESTAMPTZ',
     ];
 
+    /** @var string[] Functions that execute SQL strings or read relations outside the query's AST. */
+    private const DENY_FUNCTIONS = [
+        'query_to_xml', 'query_to_xmlschema', 'query_to_xml_and_xmlschema',
+        'table_to_xml', 'table_to_xmlschema', 'table_to_xml_and_xmlschema',
+        'schema_to_xml', 'schema_to_xmlschema', 'schema_to_xml_and_xmlschema',
+        'database_to_xml', 'database_to_xmlschema', 'database_to_xml_and_xmlschema',
+        'cursor_to_xml', 'cursor_to_xmlschema',
+    ];
+
     /** @var string[] Warnings from the most recent validate() call. */
     private static array $warnings = [];
 
@@ -105,6 +114,8 @@ class validator {
      * @throws \moodle_exception when the SQL is rejected.
      */
     public static function validate(string $sql): string {
+        global $DB;
+
         self::$warnings = [];
         $sql = trim($sql);
         if ($sql === '') {
@@ -169,24 +180,14 @@ class validator {
             throw new \moodle_exception('errmultistatement', 'report_sql');
         }
 
-        // Parse the query. greenlion's parser does not understand Moodle's {table} braces,
-        // so feed it a brace-stripped copy. The parse tree drives the statement-type and
-        // JOIN-condition checks below; the denylists that follow are kept as defence-in-depth.
-        $tree = self::parse(self::strip_braces(rtrim($sql, "; \t\n\r")));
-
-        // Statement type: top-level keys must describe a SELECT/WITH/UNION read query only.
-        self::check_statement_type($tree);
-
-        // Reject schema-qualified (dotted) table references anywhere in the tree. Moodle's
-        // {table} convention has no cross-schema form, and auto_brace() only braces bare
-        // single-word names — so a dotted reference such as `information_schema.columns` or
-        // `mysql.user` never gets braced and would therefore slip past the {tablename}
-        // DENY_TABLES scan below, reaching the live database (and any schema the DB account
-        // can see) unfiltered. The parser is fed a brace-stripped copy, so a legitimate
-        // Moodle table appears here as a bare word; only genuinely cross-schema references
-        // retain a dot. This walks the whole parse tree, so joins, comma-lists, subqueries
-        // and CTE bodies are all covered.
-        self::reject_qualified_tables($tree);
+        $postgres = $DB->get_dbfamily() === 'postgres';
+        $tree = [];
+        if (!$postgres) {
+            $compiled = view::compile(rtrim($sql, "; \t\n\r"));
+            $tree = self::parse($compiled);
+            self::check_statement_type($tree);
+            mysql_validator::validate($tree, $compiled, self::denied_tables(), self::denied_columns());
+        }
 
         // Token denylist (defence-in-depth — the parser alone does not block, e.g., INTO OUTFILE).
         foreach (self::DENY_KEYWORDS as $kw) {
@@ -224,9 +225,15 @@ class validator {
         // but are blanked in $stripped. Unquote them and apply the same table/column denylists.
         self::check_quoted_identifiers($sql);
 
-        // Each JOIN needs an ON/USING condition — catch the common mistake before the
-        // DB returns a cryptic syntax error.
-        self::check_join_conditions($tree, $stripped);
+        if ($postgres) {
+            postgres_validator::validate(
+                view::compile(rtrim($sql, "; \t\n\r")),
+                self::denied_tables(),
+                self::denied_columns()
+            );
+        } else {
+            self::check_join_conditions($tree, $stripped);
+        }
 
         global $CFG;
         $dbtype = $CFG->dbtype ?? 'mysqli';
@@ -254,6 +261,18 @@ class validator {
         }
 
         return rtrim($sql, "; \t\n\r");
+    }
+
+    /**
+     * Reject a function that can bypass the report's table/column policy.
+     *
+     * @param string $name Unqualified, decoded function name.
+     * @throws \moodle_exception When the function is forbidden.
+     */
+    public static function check_function(string $name): void {
+        if (in_array(strtolower($name), self::DENY_FUNCTIONS, true)) {
+            throw new \moodle_exception('errdeniedfunction', 'report_sql', '', $name);
+        }
     }
 
     /**
@@ -294,7 +313,7 @@ class validator {
     /**
      * Parse SQL into greenlion's parse tree, lazily loading the bundled library.
      *
-     * @param string $sql Brace-stripped SQL (the parser does not understand {table} syntax).
+     * @param string $sql Compiled SQL with Moodle placeholders already resolved.
      * @return array Parse tree keyed by clause (SELECT, FROM, WHERE, ...).
      * @throws \moodle_exception when the SQL cannot be parsed.
      */
@@ -302,7 +321,7 @@ class validator {
         global $CFG;
 
         if (!class_exists(\PHPSQLParser\PHPSQLParser::class)) {
-            require_once($CFG->dirroot . '/report/sql/lib/php-sql-parser/vendor/autoload.php');
+            require_once($CFG->dirroot . '/report/sql/vendor/autoload.php');
         }
 
         try {
@@ -346,36 +365,6 @@ class validator {
         $reads = ['SELECT', 'WITH', 'UNION', 'UNION ALL', 'EXCEPT', 'INTERSECT', 'BRACKET'];
         if (!array_intersect($reads, $keys)) {
             throw new \moodle_exception('errnotselect', 'report_sql');
-        }
-    }
-
-    /**
-     * Reject any schema-qualified (dotted) table reference in the parse tree.
-     *
-     * greenlion marks table positions with `expr_type => 'table'` and stores the raw name in
-     * `table`. Because {@see self::parse()} is fed a brace-stripped copy, a legitimate Moodle
-     * table appears as a bare word (e.g. `user`) while a cross-schema reference keeps its dot
-     * (e.g. `information_schema.columns`, `mysql.user`). Any dotted table name is therefore an
-     * attempt to read outside the site's own prefixed schema — which {@see self::auto_brace()}
-     * never braces and the {tablename} DENY_TABLES scan never sees — so it is rejected here.
-     * Recurses so subqueries and CTE bodies are covered too.
-     *
-     * @param array $node Parse tree (or any sub-tree) from {@see self::parse()}.
-     * @return void
-     * @throws \moodle_exception when a dotted table reference is found.
-     */
-    private static function reject_qualified_tables(array $node): void {
-        if (
-            (($node['expr_type'] ?? '') === 'table')
-            && is_string($node['table'] ?? null)
-            && strpos($node['table'], '.') !== false
-        ) {
-            throw new \moodle_exception('errqualifiedtable', 'report_sql', '', $node['table']);
-        }
-        foreach ($node as $child) {
-            if (is_array($child)) {
-                self::reject_qualified_tables($child);
-            }
         }
     }
 

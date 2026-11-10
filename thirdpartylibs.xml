@@ -1,7 +1,41 @@
 <?xml version="1.0"?>
 <libraries>
   <library>
-    <location>lib/php-sql-parser</location>
+    <location>vendor/composer</location>
+    <name>Composer runtime</name>
+    <description>Composer-generated dependency metadata and autoload runtime.</description>
+    <version>2.9.7</version>
+    <license>MIT</license>
+    <repository>https://github.com/composer/composer</repository>
+    <copyrights>
+      <copyright>Nils Adermann and Jordi Boggiano</copyright>
+    </copyrights>
+  </library>
+  <library>
+    <location>vendor/autoload.php</location>
+    <name>Composer autoloader</name>
+    <description>Composer-generated dependency autoload entry point.</description>
+    <version>2.9.7</version>
+    <license>MIT</license>
+    <repository>https://github.com/composer/composer</repository>
+    <copyrights>
+      <copyright>Nils Adermann and Jordi Boggiano</copyright>
+    </copyrights>
+  </library>
+  <library>
+    <location>vendor/sad_spirit/pg_builder</location>
+    <name>pg_builder</name>
+    <description>Pure-PHP PostgreSQL parser used for syntax validation and read-query AST checks, alongside the shared regex rules.</description>
+    <version>2.4.0</version>
+    <license>BSD-2-Clause</license>
+    <licenseversion>2-Clause</licenseversion>
+    <repository>https://github.com/sad-spirit/pg-builder</repository>
+    <copyrights>
+      <copyright>Alexey Borzov</copyright>
+    </copyrights>
+  </library>
+  <library>
+    <location>vendor/greenlion/php-sql-parser</location>
     <name>PHP-SQL-Parser</name>
     <description>Pure-PHP SQL parser used to validate that author-supplied report queries are read-only and well-formed before they reach the database.</description>
     <version>4.7.0</version>
