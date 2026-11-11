@@ -30,7 +30,12 @@ use sad_spirit\pg_builder\nodes\CommonTableExpression;
 use sad_spirit\pg_builder\nodes\FunctionCall;
 use sad_spirit\pg_builder\nodes\Identifier;
 use sad_spirit\pg_builder\nodes\LockingElement;
+use sad_spirit\pg_builder\nodes\Star;
+use sad_spirit\pg_builder\nodes\TargetElement;
+use sad_spirit\pg_builder\nodes\range\FromElement;
+use sad_spirit\pg_builder\nodes\range\JoinExpression;
 use sad_spirit\pg_builder\nodes\range\RelationReference;
+use sad_spirit\pg_builder\nodes\range\TableSample;
 
 /**
  * PostgreSQL syntax and read-query AST checks, supplementing the shared regex rules.
@@ -164,6 +169,29 @@ class postgres_validator {
              * @return mixed
              */
             public function walkColumnReference(ColumnReference $node): mixed {
+                if ($this->deniedcolumns !== []) {
+                    if ($node->column instanceof Star && !($node->getParentNode() instanceof TargetElement)) {
+                        throw new \moodle_exception('errwholerow', 'report_sql', '', (string) $node);
+                    }
+                    if ($node->column instanceof Identifier && $node->relation === null) {
+                        // PostgreSQL resolves an unqualified range name to its entire composite row.
+                        for ($parent = $node->getParentNode(); $parent !== null; $parent = $parent->getParentNode()) {
+                            if ($parent instanceof Select) {
+                                $ranges = $parent->from;
+                            } else if ($parent instanceof JoinExpression) {
+                                // A join alias hides its inputs outside the join, but not inside it.
+                                $ranges = [$parent->left, $parent->right];
+                            } else {
+                                continue;
+                            }
+                            foreach ($ranges as $range) {
+                                if (in_array($node->column->value, $this->range_names($range), true)) {
+                                    throw new \moodle_exception('errwholerow', 'report_sql', '', (string) $node);
+                                }
+                            }
+                        }
+                    }
+                }
                 if ($node->column instanceof Identifier) {
                     $column = strtolower($node->column->value);
                     if (in_array($column, $this->deniedcolumns, true)) {
@@ -171,6 +199,32 @@ class postgres_validator {
                     }
                 }
                 return parent::walkColumnReference($node);
+            }
+
+            /**
+             * Names that can denote a whole row in this FROM item, without entering subqueries.
+             *
+             * @param FromElement $range FROM item.
+             * @return string[]
+             */
+            private function range_names(FromElement $range): array {
+                if ($range->tableAlias !== null) {
+                    return [$range->tableAlias->value];
+                }
+                if ($range instanceof TableSample) {
+                    return $this->range_names($range->relation);
+                }
+                if ($range instanceof RelationReference) {
+                    return [$range->name->relation->value];
+                }
+                if ($range instanceof JoinExpression) {
+                    $names = array_merge($this->range_names($range->left), $this->range_names($range->right));
+                    if ($range->using !== null && $range->using->alias !== null) {
+                        $names[] = $range->using->alias->value;
+                    }
+                    return $names;
+                }
+                return [];
             }
         };
         // phpcs:enable moodle.NamingConventions.ValidFunctionName.LowercaseMethod

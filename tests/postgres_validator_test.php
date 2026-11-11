@@ -20,9 +20,10 @@ namespace report_sql;
 
 use report_sql\local\sql\postgres_validator;
 use report_sql\local\sql\validator;
+use report_sql\local\sql\view;
 
 /**
- * PostgreSQL AST checks, runnable on either database family without executing SQL.
+ * PostgreSQL AST checks on either database family, plus PostgreSQL integration coverage.
  *
  * @package   report_sql
  * @copyright 2026 Catalyst IT
@@ -57,6 +58,15 @@ final class postgres_validator_test extends \advanced_testcase {
             'denied words in literal' => ["SELECT 'password config' AS label"],
             'nested comments' => ['SELECT /* outer /* nested */ outer */ 1'],
             'function schema is not a table' => ['SELECT pg_catalog.lower(\'TEXT\') AS label'],
+            'wildcard projection' => ['SELECT * FROM users'],
+            'qualified wildcard projection' => ['SELECT u.* FROM users u'],
+            'nested wildcard projection' => ['SELECT * FROM (SELECT * FROM users) u'],
+            'count wildcard' => ['SELECT COUNT(*) AS n FROM users'],
+            'explicit JSON row' => ['SELECT row_to_json(ROW(u.id, u.username)) AS data FROM users u'],
+            'JSON scalar' => ['SELECT to_jsonb(u.username) AS data FROM users u'],
+            'qualified column matching alias' => ['SELECT u.u FROM users u'],
+            'unrelated subquery alias' => ['SELECT u FROM users WHERE id IN (SELECT u.id FROM users u)'],
+            'quoted alias case differs' => ['SELECT u FROM users "U"'],
         ];
     }
 
@@ -119,6 +129,45 @@ final class postgres_validator_test extends \advanced_testcase {
             'denied column alias' => ['SELECT password AS pw FROM course', 'errdeniedcolumn'],
             'denied nested column' => ['SELECT (SELECT password FROM course) AS pw', 'errdeniedcolumn'],
             'denied quoted column' => ['SELECT "password" AS pw FROM course', 'errdeniedcolumn'],
+            'JSON whole row' => ['SELECT row_to_json(u) AS data FROM users u', 'errwholerow'],
+            'JSONB whole row' => ['SELECT to_jsonb(u) AS data FROM users u', 'errwholerow'],
+            'qualified JSON function whole row' => ['SELECT pg_catalog.row_to_json(u) FROM users u', 'errwholerow'],
+            'JSON expanded row' => ['SELECT row_to_json(u.*) FROM users u', 'errwholerow'],
+            'JSONB expanded row' => ['SELECT to_jsonb(u.*) FROM users u', 'errwholerow'],
+            'row constructor wildcard' => ['SELECT ROW(u.*) FROM users u', 'errwholerow'],
+            'whole row cast' => ['SELECT u::text FROM users u', 'errwholerow'],
+            'whole row projection' => ['SELECT u FROM users u', 'errwholerow'],
+            'unaliased whole row' => ['SELECT row_to_json(users) FROM users', 'errwholerow'],
+            'quoted whole row' => ['SELECT row_to_json("U") FROM users "U"', 'errwholerow'],
+            'nested whole row' => ['SELECT (SELECT row_to_json(u)) FROM users u', 'errwholerow'],
+            'lateral whole row' => [
+                'SELECT x.data FROM users u CROSS JOIN LATERAL (SELECT to_jsonb(u) AS data) x', 'errwholerow',
+            ],
+            'lateral inside aliased join' => [
+                'SELECT j.data FROM (users u CROSS JOIN LATERAL (SELECT to_jsonb(u) AS data) x) j', 'errwholerow',
+            ],
+            'joined whole row' => [
+                'SELECT row_to_json(u) FROM users u JOIN course c ON c.id = u.id', 'errwholerow',
+            ],
+            'join alias whole row' => [
+                'SELECT row_to_json(j) FROM (users u JOIN course c ON c.id = u.id) j', 'errwholerow',
+            ],
+            'whole row in aliased join condition' => [
+                "SELECT j.id FROM (users u JOIN course c ON to_jsonb(u) = '{}'::jsonb) j", 'errwholerow',
+            ],
+            'join using alias whole row' => [
+                'SELECT row_to_json(j) FROM users u JOIN course c USING (id) AS j', 'errwholerow',
+            ],
+            'sampled whole row' => [
+                'SELECT row_to_json(users) FROM users TABLESAMPLE SYSTEM (1)', 'errwholerow',
+            ],
+            'derived whole row' => ['SELECT row_to_json(u) FROM (SELECT * FROM users) u', 'errwholerow'],
+            'CTE whole row' => [
+                'WITH u AS (SELECT * FROM users) SELECT to_jsonb(u) FROM u', 'errwholerow',
+            ],
+            'union whole row' => [
+                'SELECT 1::text UNION ALL SELECT u::text FROM users u', 'errwholerow',
+            ],
             'row lock share' => ['SELECT id FROM course FOR SHARE', 'errdeniedkeyword'],
             'row lock update' => ['SELECT id FROM course FOR UPDATE', 'errdeniedkeyword'],
             'row lock key share' => ['SELECT id FROM course FOR KEY SHARE', 'errdeniedkeyword'],
@@ -152,6 +201,62 @@ final class postgres_validator_test extends \advanced_testcase {
             $this->fail('Expected SQL to be rejected');
         } catch (\moodle_exception $e) {
             $this->assertSame($errorcode, $e->errorcode);
+        }
+    }
+
+    /**
+     * Whole rows are permitted when the administrator has disabled column restrictions.
+     */
+    public function test_whole_rows_without_column_denylist(): void {
+        postgres_validator::validate('SELECT row_to_json(u), to_jsonb(u.*) FROM users u', ['config'], []);
+        $this->addToAssertionCount(1);
+    }
+
+    /**
+     * Ordinary wildcard reports retain output filtering, and explicitly constructed JSON still runs.
+     */
+    public function test_postgres_wildcard_columns_and_explicit_json(): void {
+        global $DB, $USER;
+
+        if ($DB->get_dbfamily() !== 'postgres') {
+            $this->markTestSkipped('PostgreSQL-specific report expressions');
+        }
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        set_config('denycolumns', 'password', 'report_sql');
+        $user = $this->getDataGenerator()->create_user();
+
+        foreach (['*', 'u.*'] as $projection) {
+            $sql = validator::validate('SELECT ' . $projection . ' FROM {user} u');
+            $viewname = view::create_or_replace_preview((int) $USER->id, $sql);
+            try {
+                $columns = view::columns($viewname);
+                $this->assertArrayHasKey('id', $columns);
+                $this->assertArrayHasKey('username', $columns);
+                $this->assertArrayNotHasKey('password', $columns);
+            } finally {
+                view::drop_preview((int) $USER->id);
+            }
+        }
+
+        $sql = validator::validate('SELECT row_to_json(ROW(u.id, u.username)) AS data FROM {user} u');
+        $json = $DB->get_field_sql(view::compile($sql) . ' WHERE u.id = ?', [$user->id]);
+        $this->assertSame(
+            ['f1' => (int) $user->id, 'f2' => $user->username],
+            json_decode($json, true, 512, JSON_THROW_ON_ERROR)
+        );
+
+        foreach (['row_to_json(u)', 'to_jsonb(u)', 'row_to_json(u.*)', 'to_jsonb(u.*)'] as $expression) {
+            $sql = 'SELECT ' . $expression . ' AS data FROM {user} u';
+            $json = $DB->get_field_sql(view::compile($sql) . ' WHERE u.id = ?', [$user->id]);
+            $this->assertArrayHasKey('password', json_decode($json, true, 512, JSON_THROW_ON_ERROR));
+            try {
+                validator::validate($sql);
+                $this->fail('Expected whole-row SQL to be rejected');
+            } catch (\moodle_exception $e) {
+                $this->assertSame('errwholerow', $e->errorcode);
+            }
         }
     }
 

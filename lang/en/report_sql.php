@@ -262,6 +262,7 @@ $string['errnodeleteselection'] = 'Select at least one report source to delete.'
 $string['errnoexportselection'] = 'Select at least one report source to export.';
 $string['errnoimportselection'] = 'Select at least one report source to import.';
 $string['errnotselect'] = 'Only SELECT queries are allowed.';
+$string['errwholerow'] = 'Whole-row reference "{$a}" cannot be checked against the sensitive-column denylist. Use explicit, qualified columns in expressions (e.g. row_to_json(ROW(u.id, u.username))). SELECT * and SELECT u.* remain allowed as column selections.';
 $string['errpagecourseambiguous'] = 'A report may carry only one %%PAGECOURSE(expr)%% token, and its expression must resolve to a named output column. Use a single %%PAGECOURSE()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... FROM {course} c.';
 $string['errpagecourseunresolved'] = 'The %%PAGECOURSE()%% token could not be matched to an output column named "{$a}". Give the marked column an explicit alias so it becomes a named view column, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... — publishing was stopped rather than leave the page-course filter unapplied.';
 $string['errparse'] = 'The SQL could not be parsed: {$a}';

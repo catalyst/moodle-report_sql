@@ -873,6 +873,7 @@ Common messages:
 | *Only SELECT queries are allowed.* | Remove `INSERT`/`UPDATE`/`DELETE` etc. |
 | *Multiple statements are not allowed.* | One statement only; remove extra `;`. |
 | *Disallowed table / column / keyword.* | Touches a denylisted table, column, or keyword. |
+| *Whole-row reference "..." cannot be checked against the sensitive-column denylist.* | On PostgreSQL, list qualified columns explicitly inside expressions, e.g. `row_to_json(ROW(u.id, u.username))` instead of `row_to_json(u)` or `row_to_json(u.*)`. This applies whenever the column denylist is non-empty, including references to CTEs and subqueries. If a column shares a table alias's name, qualify it (`u.u`). Ordinary `SELECT *`, `SELECT u.*` and `COUNT(*)` remain supported; denied output columns are still excluded from reports. |
 | *Joined tables share duplicate column names…* | Replace `SELECT *` with explicit aliased columns. |
 | *The column "…" is an expression with no name…* | Add an `AS` alias to every aggregate/expression column (`count(*) AS total`). |
 | *A JOIN is missing its ON (or USING) condition.* | Add a join condition. |
