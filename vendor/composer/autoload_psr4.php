@@ -8,4 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     'sad_spirit\\pg_builder\\rector\\' => array($vendorDir . '/sad_spirit/pg_builder/rector'),
     'sad_spirit\\pg_builder\\' => array($vendorDir . '/sad_spirit/pg_builder/src/sad_spirit/pg_builder'),
+    'cweagans\\Composer\\' => array($vendorDir . '/cweagans/composer-patches/src', $vendorDir . '/cweagans/composer-configurable-plugin/src'),
 );

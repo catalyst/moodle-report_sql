@@ -23,6 +23,30 @@
     </copyrights>
   </library>
   <library>
+    <location>vendor/cweagans/composer-patches</location>
+    <name>Composer Patches</name>
+    <description>Composer plugin that reproducibly applies local compatibility patches when maintaining bundled dependencies.</description>
+    <version>2.0.0</version>
+    <license>BSD-3-Clause</license>
+    <licenseversion>3-Clause</licenseversion>
+    <repository>https://github.com/cweagans/composer-patches</repository>
+    <copyrights>
+      <copyright>Cameron Eagans</copyright>
+    </copyrights>
+  </library>
+  <library>
+    <location>vendor/cweagans/composer-configurable-plugin</location>
+    <name>Composer Configurable Plugin</name>
+    <description>Configuration support for the Composer Patches dependency maintenance plugin.</description>
+    <version>2.0.0</version>
+    <license>BSD-3-Clause</license>
+    <licenseversion>3-Clause</licenseversion>
+    <repository>https://github.com/cweagans/composer-configurable-plugin</repository>
+    <copyrights>
+      <copyright>2023 Cameron Eagans</copyright>
+    </copyrights>
+  </library>
+  <library>
     <location>vendor/sad_spirit/pg_builder</location>
     <name>pg_builder</name>
     <description>Pure-PHP PostgreSQL parser used for syntax validation and read-query AST checks, alongside the shared regex rules.</description>

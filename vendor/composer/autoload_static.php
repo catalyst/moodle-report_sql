@@ -12,6 +12,10 @@ class ComposerStaticInit051974acd0e9b6ee1d4445baf5e1c5d1
             'sad_spirit\\pg_builder\\rector\\' => 29,
             'sad_spirit\\pg_builder\\' => 22,
         ),
+        'c' =>
+        array (
+            'cweagans\\Composer\\' => 18,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -22,6 +26,11 @@ class ComposerStaticInit051974acd0e9b6ee1d4445baf5e1c5d1
         'sad_spirit\\pg_builder\\' =>
         array (
             0 => __DIR__ . '/..' . '/sad_spirit/pg_builder/src/sad_spirit/pg_builder',
+        ),
+        'cweagans\\Composer\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/cweagans/composer-patches/src',
+            1 => __DIR__ . '/..' . '/cweagans/composer-configurable-plugin/src',
         ),
     );
 

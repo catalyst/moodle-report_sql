@@ -1,0 +1,17 @@
+{
+    "_hash": "b92e372b65f758c8db2f71cc680a426a17f5665cd059bd8f014c4227805b01b4",
+    "patches": {
+        "greenlion/php-sql-parser": [
+            {
+                "package": "greenlion/php-sql-parser",
+                "description": "Replace removed curly-brace string offsets for PHP 8",
+                "url": "patches/php-sql-parser-php8-string-offsets.patch",
+                "sha256": "52006dacdefc8e342b0c110466e92fef54f62de8c4b6e360c17c23a48d9fe5d1",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

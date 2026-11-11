@@ -5,7 +5,20 @@
     "license": "GPL-3.0-or-later",
     "require": {
         "php": ">=8.1",
+        "cweagans/composer-patches": "^2.0",
         "greenlion/php-sql-parser": "^4.7",
         "sad_spirit/pg_builder": "^2.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "cweagans/composer-patches": true
+        }
+    },
+    "extra": {
+        "patches": {
+            "greenlion/php-sql-parser": {
+                "Replace removed curly-brace string offsets for PHP 8": "patches/php-sql-parser-php8-string-offsets.patch"
+            }
+        }
     }
 }

@@ -82,6 +82,13 @@ The plugin's root `composer.json` manages both SQL parsers. The root
 single installable package, with no Composer step required on the Moodle site.
 Both parsers load through `vendor/autoload.php`.
 
+The bundled Greenlion 4.7.0 includes an obsolete development-only CodeSniffer
+file with curly-brace string offsets, which PHP 8 cannot parse. The latest
+5.0.0 release still contains this file, so upgrading does not fix full-tree
+linting. A local four-line patch replaces those offsets with square brackets;
+`cweagans/composer-patches` 2.x applies it when installing the dependency.
+`patches.lock.json` locks the patch checksum. No parser runtime code is changed.
+
 The plugin's PHPUnit configuration restricts deprecation reporting to its
 first-party source files. This excludes PHP 8.4 implicit-nullability notices from
 the bundled `pg_builder` 2.x without hiding deprecations in plugin code or
@@ -94,10 +101,21 @@ From the plugin directory, restore the locked dependencies with:
 composer install --no-dev --prefer-dist
 ```
 
+Dependency maintenance requires Git and Composer 2.2 or newer for patching.
+Keep Composer plugins enabled (do not use `--no-plugins`). These tools are not
+required on Moodle sites installing the bundled plugin.
+
 To update the parsers within their supported version constraints:
 
 ```bash
 composer update greenlion/php-sql-parser sad_spirit/pg_builder --no-dev --prefer-dist
+```
+
+After changing a patch definition or patch file, regenerate its lock and reapply:
+
+```bash
+composer patches-relock
+composer patches-repatch
 ```
 
 Keep `sad_spirit/pg_builder` on 2.x to preserve PHP 8.1 compatibility.
@@ -105,7 +123,9 @@ After updates, refresh the versions in `thirdpartylibs.xml` (including the
 Composer runtime entries when regenerating with a newer Composer release), run
 `tests/sql_validator_test.php` and `tests/postgres_validator_test.php` through
 Moodle's PHPUnit runner on PostgreSQL and MySQL/MariaDB, and commit the changed
-lock file and vendor files together.
+lock files, local patches and vendor files together. Include the patch tooling
+in `thirdpartylibs.xml` too. Only remove the Greenlion patch once the chosen
+upstream release passes full-tree PHP lint without it.
 
 ## Installation
 
