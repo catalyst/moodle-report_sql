@@ -25,6 +25,7 @@ use core_external\external_single_structure;
 use core_external\external_value;
 use report_sql\local\sql\validator;
 use report_sql\local\sql\view;
+use report_sql\local\db_reader;
 
 /**
  * Validates user-supplied SQL: static checks then a live DB dry-run.
@@ -82,7 +83,8 @@ class validate_sql extends external_api {
         // table into memory). Unlike the VIEW-create check below, a row dry-run does not care
         // about duplicate output column names, so wrapping is safe here.
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $db = db_reader::get();
+            $db->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             return ['ok' => false, 'error' => validator::clean_error($detail), 'compiledsql' => $resolved];

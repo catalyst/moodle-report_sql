@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace report_sql\local\sql;
 
 use report_sql\local\sql\validator;
+use report_sql\local\db_reader;
 
 /**
  * Manages database VIEWs that back published ad-hoc queries.
@@ -804,14 +805,15 @@ RULES;
      * @return array<string, object> Keyed by column name; each value has a `meta_type` property.
      */
     private static function pg_view_columns(string $viewname): array {
-        global $DB, $CFG;
+        $db = db_reader::get();
+        global $CFG;
         $fullname = $CFG->prefix . $viewname;
         $sql = "SELECT column_name, data_type
                   FROM information_schema.columns
                  WHERE table_schema = current_schema()
                    AND table_name = ?
               ORDER BY ordinal_position";
-        $rows = $DB->get_records_sql($sql, [$fullname]);
+        $rows = $db->get_records_sql($sql, [$fullname]);
         $columns = [];
         foreach ($rows as $row) {
             $columns[$row->column_name] = (object) ['meta_type' => self::pg_meta_type($row->data_type)];

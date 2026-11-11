@@ -22,6 +22,7 @@ use core_reportbuilder\local\models\report as report_model;
 use core_reportbuilder\local\helpers\report as reporthelper;
 use report_sql\local\sql\validator;
 use report_sql\local\sql\view;
+use report_sql\local\db_reader;
 
 /**
  * Saved ad-hoc query CRUD + lifecycle.
@@ -380,7 +381,7 @@ class query {
      * @return array<int, array<string, mixed>> Result rows as associative arrays.
      */
     public function fetch_rows_for_viewer(int $rowlimit = 0, int $pagecourseid = 0): array {
-        global $DB;
+        $db = db_reader::get();
 
         $filter = $this->build_viewer_filter($pagecourseid);
         if ($filter === null) {
@@ -393,7 +394,7 @@ class query {
 
         $rows = [];
         try {
-            $rs = $DB->get_recordset_select($viewname, $select, $params, '', $fields, 0, $limit);
+            $rs = $db->get_recordset_select($viewname, $select, $params, '', $fields, 0, $limit);
             foreach ($rs as $row) {
                 $rows[] = (array) $row;
             }
@@ -1245,10 +1246,10 @@ class query {
      * @return int[] Report ids.
      */
     public static function bound_report_ids(int $queryid): array {
-        global $DB;
+        $db = db_reader::get();
 
-        $rows = $DB->get_records_sql(
-            "SELECT name FROM {config_plugins} WHERE plugin = ? AND " . $DB->sql_like('name', '?') . " AND value = ?",
+        $rows = $db->get_records_sql(
+            "SELECT name FROM {config_plugins} WHERE plugin = ? AND " . $db->sql_like('name', '?') . " AND value = ?",
             ['report_sql', 'queryid\_for\_report\_%', (string) $queryid]
         );
         $ids = [];
@@ -1415,7 +1416,8 @@ class query {
         $ceiling = (int) get_config('report_sql', 'enumrowceiling');
         if ($ceiling > 0) {
             try {
-                $rows = $DB->count_records_sql(
+                $db = db_reader::get();
+                $rows = $db->count_records_sql(
                     "SELECT COUNT(*) FROM (
                         SELECT 1 FROM {{$viewname}} LIMIT " . ($ceiling + 1) . "
                     ) rs_enumguard"
@@ -1438,7 +1440,8 @@ class query {
                 // threshold + 1 distinct values. A result of threshold + 1 means "more than threshold"
                 // (not a dropdown); anything less is the true distinct count. Bounds worst-case cost to
                 // threshold + 1 rows instead of a full-column distinct scan.
-                $distinct = $DB->count_records_sql(
+                $db = db_reader::get();
+                $distinct = $db->count_records_sql(
                     "SELECT COUNT(*) FROM (
                         SELECT DISTINCT {$name} FROM {{$viewname}}
                          WHERE {$name} IS NOT NULL

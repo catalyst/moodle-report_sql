@@ -20,6 +20,7 @@ namespace report_sql\local;
 
 use report_sql\local\sql\validator;
 use report_sql\local\sql\view;
+use report_sql\local\db_reader;
 
 /**
  * Shared deterministic SQL-translation machinery for the legacy-report importers.
@@ -590,12 +591,13 @@ trait import_helper {
      * @return string|null
      */
     private static function dry_run(string $validated): ?string {
-        global $DB, $CFG;
+        global $CFG;
+        $db = db_reader::get();
 
         $resolved = view::resolve_placeholders($validated);
 
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $db->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             // SELECT * across joined tables yields duplicate output column names (e.g. several `id`),

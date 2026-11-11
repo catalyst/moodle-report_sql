@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace report_sql\local;
 
+use report_sql\local\db_reader;
+
 /**
  * Read-only aggregates over the report-view audit table for a single query (Phase 2 usage panel).
  *
@@ -36,8 +38,8 @@ class usagestats {
      * @return \stdClass {views:int, viewers:int, firstviewed:?int, lastviewed:?int}
      */
     public static function summary(int $queryid): \stdClass {
-        global $DB;
-        $row = $DB->get_record_sql(
+        $db = db_reader::get();
+        $row = $db->get_record_sql(
             "SELECT COUNT(1) AS views, COUNT(DISTINCT userid) AS viewers,
                     MIN(timeviewed) AS firstviewed, MAX(timeviewed) AS lastviewed
                FROM {" . query::TABLE_VIEW . "}
@@ -60,8 +62,8 @@ class usagestats {
      * @return \stdClass[] Each {userid:int, views:int, lastviewed:int, fullname:string}, busiest first.
      */
     public static function top_viewers(int $queryid, int $limit = 10): array {
-        global $DB;
-        $rows = $DB->get_records_sql(
+        $db = db_reader::get();
+        $rows = $db->get_records_sql(
             "SELECT userid, COUNT(1) AS views, MAX(timeviewed) AS lastviewed
                FROM {" . query::TABLE_VIEW . "}
               WHERE queryid = :queryid
@@ -81,8 +83,8 @@ class usagestats {
      * @return \stdClass[] Each {reportid:int, views:int, lastviewed:int}, busiest first.
      */
     public static function per_report(int $queryid): array {
-        global $DB;
-        $rows = $DB->get_records_sql(
+        $db = db_reader::get();
+        $rows = $db->get_records_sql(
             "SELECT reportid, COUNT(1) AS views, MAX(timeviewed) AS lastviewed
                FROM {" . query::TABLE_VIEW . "}
               WHERE queryid = :queryid
@@ -106,8 +108,8 @@ class usagestats {
      * @return \stdClass[] Each {userid:int, reportid:int, timeviewed:int, fullname:string}, newest first.
      */
     public static function recent(int $queryid, int $limit = 20): array {
-        global $DB;
-        $rows = $DB->get_records_sql(
+        $db = db_reader::get();
+        $rows = $db->get_records_sql(
             "SELECT id, userid, reportid, timeviewed
                FROM {" . query::TABLE_VIEW . "}
               WHERE queryid = :queryid

@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace report_sql\local\sql;
 
+use report_sql\local\db_reader;
+
 /**
  * Gives an author feedback on a report source: date-like columns that should use
  * the %%TIMESTAMP()%% token, the result row count, and per-table index / full-scan
@@ -204,13 +206,13 @@ class analyser {
      * @return string|null Cleaned DB error, or null when the query runs.
      */
     private static function dry_run(string $resolved): ?string {
-        global $DB;
+        $db = db_reader::get();
         // Wrap as a subquery so a trailing line comment in the author SQL cannot swallow the LIMIT
         // (`... -- note` would otherwise comment out an appended LIMIT and fetch the whole table).
         // LIMIT 1 (not 0) materialises a row, so select-list expressions are actually evaluated —
         // catching row-dependent errors like to_char() on a bigint that LIMIT 0 would let through.
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $db->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             return validator::clean_error($detail);
@@ -228,9 +230,9 @@ class analyser {
      * @return int
      */
     private static function row_count(string $resolved, array &$warnings): int {
-        global $DB;
+        $db = db_reader::get();
         try {
-            $count = $DB->count_records_sql("SELECT COUNT(*) FROM ({$resolved}) rs_count");
+            $count = $db->count_records_sql("SELECT COUNT(*) FROM ({$resolved}) rs_count");
         } catch (\dml_exception $e) {
             // dry_run() already caught syntax errors, so a failure here is the timeout cap (or a
             // resource limit) on a slow/huge query — warn instead of silently showing no count.
@@ -287,7 +289,8 @@ class analyser {
         // Sample one row so a name match can be corroborated by a plausible-epoch value.
         $sample = null;
         try {
-            $rows = $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_sample LIMIT 1", []);
+            $db = db_reader::get();
+            $rows = $db->get_records_sql("SELECT * FROM ({$resolved}) rs_sample LIMIT 1", []);
             $sample = $rows ? (array) reset($rows) : [];
         } catch (\dml_exception $e) {
             $sample = [];
@@ -577,15 +580,15 @@ class analyser {
      * @param string[] $warnings Collected warnings (appended in place).
      */
     private static function explain_scans(string $resolved, array &$warnings): void {
-        global $DB;
+        $db = db_reader::get();
 
-        $family = $DB->get_dbfamily();
+        $family = $db->get_dbfamily();
         $scans = []; // Moodle table name => estimated scanned rows, deduped.
         try {
             if ($family === 'mysql') {
                 // An EXPLAIN plan repeats id=1 across joined tables, so it must not be keyed by its
                 // first column — use a recordset (get_records_sql would raise a duplicate-key debug).
-                $plan = $DB->get_recordset_sql("EXPLAIN {$resolved}", []);
+                $plan = $db->get_recordset_sql("EXPLAIN {$resolved}", []);
                 foreach ($plan as $row) {
                     $row = (array) $row;
                     $type = strtoupper((string) ($row['type'] ?? ''));
@@ -598,7 +601,7 @@ class analyser {
                 $plan->close();
             } else if ($family === 'postgres') {
                 // Likewise: the textual plan's "QUERY PLAN" lines are not unique keys.
-                $plan = $DB->get_recordset_sql("EXPLAIN {$resolved}", []);
+                $plan = $db->get_recordset_sql("EXPLAIN {$resolved}", []);
                 foreach ($plan as $row) {
                     $row = (array) $row;
                     $line = (string) reset($row);
