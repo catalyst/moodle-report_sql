@@ -1,0 +1,11 @@
+{
+    "name": "catalyst/report_sql",
+    "description": "Moodle SQL reports backed by Report Builder",
+    "type": "moodle-report",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=8.1",
+        "greenlion/php-sql-parser": "^4.7",
+        "sad_spirit/pg_builder": "^2.4"
+    }
+}

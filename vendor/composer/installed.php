@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'catalyst/report_sql',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'b59cd78b084e3e4568147b82cfd034aab77e52e1',
+        'type' => 'moodle-report',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'catalyst/report_sql' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'b59cd78b084e3e4568147b82cfd034aab77e52e1',
+            'type' => 'moodle-report',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'greenlion/php-sql-parser' => array(
+            'pretty_version' => 'v4.7.0',
+            'version' => '4.7.0.0',
+            'reference' => '0cd49149efc5868db9c32d1a09558ea516892586',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../greenlion/php-sql-parser',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'sad_spirit/pg_builder' => array(
+            'pretty_version' => 'v2.4.0',
+            'version' => '2.4.0.0',
+            'reference' => 'd9d15715fdf789e6ed2d38471c3f7338062df35f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sad_spirit/pg_builder',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);
