@@ -44,7 +44,7 @@ class XmlPi extends GenericNode implements ScalarExpression, FunctionLike
     /** @var ScalarExpression|null */
     protected $p_content = null;
 
-    public function __construct(Identifier $name, ScalarExpression $content = null)
+    public function __construct(Identifier $name, ?ScalarExpression $content = null)
     {
         $this->generatePropertyNames();
 

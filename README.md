@@ -81,6 +81,8 @@ The plugin's root `composer.json` manages both SQL parsers. The root
 `composer.lock` and `vendor/` directory are committed so the plugin remains a
 single installable package, with no Composer step required on the Moodle site.
 Both parsers load through `vendor/autoload.php`.
+Composer resolves dependencies against PHP 8.1.0 via `config.platform.php`,
+even when updates are run on a newer PHP version, to preserve the PHP 8.1 floor.
 
 The bundled Greenlion 4.7.0 includes an obsolete development-only CodeSniffer
 file with curly-brace string offsets, which PHP 8 cannot parse. The latest
@@ -89,11 +91,13 @@ linting. A local four-line patch replaces those offsets with square brackets;
 `cweagans/composer-patches` 2.x applies it when installing the dependency.
 `patches.lock.json` locks the patch checksum. No parser runtime code is changed.
 
-The plugin's PHPUnit configuration restricts deprecation reporting to its
-first-party source files. This excludes PHP 8.4 implicit-nullability notices from
-the bundled `pg_builder` 2.x without hiding deprecations in plugin code or
-changing production error reporting. Run with the plugin's `phpunit.xml` (as
-Moodle Plugin CI does) to apply this filter.
+The bundled `pg_builder` 2.4.0 also needs a local compatibility patch: its
+implicitly nullable parameters are made explicitly nullable to prevent PHP 8.4
+deprecations. This preserves the existing accepted arguments and PHP 8.1
+support; upstream 3.x requires PHP 8.2. The patch covers all affected signatures,
+including interfaces and overrides, rather than only those exercised by tests.
+The plugin's PHPUnit configuration still restricts deprecation reporting to
+first-party source files, but neither patch relies on suppressing deprecations.
 
 From the plugin directory, restore the locked dependencies with:
 
@@ -125,7 +129,9 @@ Composer runtime entries when regenerating with a newer Composer release), run
 Moodle's PHPUnit runner on PostgreSQL and MySQL/MariaDB, and commit the changed
 lock files, local patches and vendor files together. Include the patch tooling
 in `thirdpartylibs.xml` too. Only remove the Greenlion patch once the chosen
-upstream release passes full-tree PHP lint without it.
+upstream release passes full-tree PHP lint without it. Remove the `pg_builder`
+patch only when an upstream release supports the full PHP range without
+implicit-nullability deprecations.
 
 ## Installation
 

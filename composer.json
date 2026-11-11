@@ -10,6 +10,9 @@
         "sad_spirit/pg_builder": "^2.4"
     },
     "config": {
+        "platform": {
+            "php": "8.1.0"
+        },
         "allow-plugins": {
             "cweagans/composer-patches": true
         }
@@ -18,6 +21,9 @@
         "patches": {
             "greenlion/php-sql-parser": {
                 "Replace removed curly-brace string offsets for PHP 8": "patches/php-sql-parser-php8-string-offsets.patch"
+            },
+            "sad_spirit/pg_builder": {
+                "Make nullable parameters explicit for PHP 8.4 while retaining PHP 8.1": "patches/pg-builder-php84-explicit-nullability.patch"
             }
         }
     }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "00bea9bd0eed28d605016193b5bd0450",
+    "content-hash": "157de5a231929f2e91156df028e5eaf1",
     "packages": [
         {
             "name": "cweagans/composer-configurable-plugin",
@@ -269,5 +269,8 @@
         "php": ">=8.1"
     },
     "platform-dev": {},
+    "platform-overrides": {
+        "php": "8.1.0"
+    },
     "plugin-api-version": "2.9.0"
 }

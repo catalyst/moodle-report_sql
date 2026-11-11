@@ -42,7 +42,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory implem
     /** @var Parser|null */
     private $parser;
 
-    public function __construct(Parser $parser = null)
+    public function __construct(?Parser $parser = null)
     {
         parent::__construct();
         $this->setParser($parser);
@@ -54,7 +54,7 @@ class ParserAwareTypeConverterFactory extends DefaultTypeConverterFactory implem
      * @param Parser|null $parser
      * @return $this
      */
-    public function setParser(Parser $parser = null): self
+    public function setParser(?Parser $parser = null): self
     {
         $this->parser = $parser;
 

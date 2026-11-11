@@ -34,7 +34,7 @@ class WhereOrHavingClause extends GenericNode
     /** @var ScalarExpression|null */
     protected $p_condition;
 
-    public function __construct(ScalarExpression $condition = null)
+    public function __construct(?ScalarExpression $condition = null)
     {
         $this->generatePropertyNames();
         $this->setCondition($condition);

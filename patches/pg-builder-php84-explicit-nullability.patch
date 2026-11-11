@@ -1,0 +1,650 @@
+--- a/src/sad_spirit/pg_builder/Insert.php
++++ b/src/sad_spirit/pg_builder/Insert.php
+@@ -80,7 +80,7 @@
+         $this->p_returning->parentNode = $this;
+     }
+ 
+-    public function setValues(SelectCommon $values = null): void
++    public function setValues(?SelectCommon $values = null): void
+     {
+         $this->setProperty($this->p_values, $values);
+     }
+--- a/src/sad_spirit/pg_builder/Node.php
++++ b/src/sad_spirit/pg_builder/Node.php
+@@ -41,7 +41,7 @@
+      *
+      * @throws exceptions\InvalidArgumentException When trying to set a child of a Node as its parent
+      */
+-    public function setParentNode(Node $parent = null): void;
++    public function setParentNode(?Node $parent = null): void;
+ 
+     /**
+      * Returns the node containing current one
+--- a/src/sad_spirit/pg_builder/Parser.php
++++ b/src/sad_spirit/pg_builder/Parser.php
+@@ -605,7 +605,7 @@
+      * @param Lexer                       $lexer
+      * @param CacheItemPoolInterface|null $cache
+      */
+-    public function __construct(Lexer $lexer, CacheItemPoolInterface $cache = null)
++    public function __construct(Lexer $lexer, ?CacheItemPoolInterface $cache = null)
+     {
+         $this->lexer = $lexer;
+         $this->cache = $cache;
+@@ -2124,7 +2124,7 @@
+     }
+ 
+     protected function IntervalWithPossibleTrailingTypeModifiers(
+-        nodes\lists\TypeModifierList $modifiers = null
++        ?nodes\lists\TypeModifierList $modifiers = null
+     ): nodes\IntervalTypeName {
+         if (
+             null === $modifiers
+--- a/src/sad_spirit/pg_builder/Statement.php
++++ b/src/sad_spirit/pg_builder/Statement.php
+@@ -81,7 +81,7 @@
+         return $this->parser;
+     }
+ 
+-    public function setParentNode(Node $parent = null): void
++    public function setParentNode(?Node $parent = null): void
+     {
+         parent::setParentNode($parent);
+         if (
+--- a/src/sad_spirit/pg_builder/StatementFactory.php
++++ b/src/sad_spirit/pg_builder/StatementFactory.php
+@@ -73,8 +73,8 @@
+      *                                                    will not be replaced by positional ones
+      */
+     public function __construct(
+-        Parser $parser = null,
+-        StatementToStringWalker $builder = null,
++        ?Parser $parser = null,
++        ?StatementToStringWalker $builder = null,
+         bool $PDOCompatible = false
+     ) {
+         $this->parser        = $parser ?? new Parser(new Lexer());
+--- a/src/sad_spirit/pg_builder/converters/ParserAwareTypeConverterFactory.php
++++ b/src/sad_spirit/pg_builder/converters/ParserAwareTypeConverterFactory.php
+@@ -42,7 +42,7 @@
+     /** @var Parser|null */
+     private $parser;
+ 
+-    public function __construct(Parser $parser = null)
++    public function __construct(?Parser $parser = null)
+     {
+         parent::__construct();
+         $this->setParser($parser);
+@@ -54,7 +54,7 @@
+      * @param Parser|null $parser
+      * @return $this
+      */
+-    public function setParser(Parser $parser = null): self
++    public function setParser(?Parser $parser = null): self
+     {
+         $this->parser = $parser;
+ 
+--- a/src/sad_spirit/pg_builder/nodes/ArrayIndexes.php
++++ b/src/sad_spirit/pg_builder/nodes/ArrayIndexes.php
+@@ -40,8 +40,8 @@
+     protected $p_isSlice;
+ 
+     public function __construct(
+-        ScalarExpression $lower = null,
+-        ScalarExpression $upper = null,
++        ?ScalarExpression $lower = null,
++        ?ScalarExpression $upper = null,
+         bool $isSlice = false
+     ) {
+         $this->generatePropertyNames();
+@@ -54,7 +54,7 @@
+         $this->setLower($lower);
+     }
+ 
+-    public function setLower(ScalarExpression $lower = null): void
++    public function setLower(?ScalarExpression $lower = null): void
+     {
+         if (!$this->p_isSlice && null !== $lower) {
+             throw new InvalidArgumentException("Lower bound should be omitted for non-slice ArrayIndexes");
+@@ -62,7 +62,7 @@
+         $this->setProperty($this->p_lower, $lower);
+     }
+ 
+-    public function setUpper(ScalarExpression $upper = null): void
++    public function setUpper(?ScalarExpression $upper = null): void
+     {
+         if (!$this->p_isSlice && null === $upper) {
+             throw new InvalidArgumentException("Upper bound is required for non-slice ArrayIndexes");
+--- a/src/sad_spirit/pg_builder/nodes/CommonTableExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/CommonTableExpression.php
+@@ -65,7 +65,7 @@
+     public function __construct(
+         Statement $statement,
+         Identifier $alias,
+-        IdentifierList $columnAliases = null,
++        ?IdentifierList $columnAliases = null,
+         ?bool $materialized = null,
+         ?SearchClause $search = null,
+         ?CycleClause $cycle = null
+--- a/src/sad_spirit/pg_builder/nodes/FunctionCall.php
++++ b/src/sad_spirit/pg_builder/nodes/FunctionCall.php
+@@ -69,7 +69,7 @@
+         $arguments = null,
+         bool $distinct = false,
+         bool $variadic = false,
+-        OrderByList $orderBy = null
++        ?OrderByList $orderBy = null
+     ) {
+         if (is_string($funcName)) {
+             // If we just create QualifiedName from $funcName the result will not be what user expects:
+--- a/src/sad_spirit/pg_builder/nodes/GenericNode.php
++++ b/src/sad_spirit/pg_builder/nodes/GenericNode.php
+@@ -212,7 +212,7 @@
+     /**
+      * {@inheritDoc}
+      */
+-    public function setParentNode(Node $parent = null): void
++    public function setParentNode(?Node $parent = null): void
+     {
+         // no-op? recursion?
+         if ($parent === $this->parentNode || $this->settingParentNode) {
+--- a/src/sad_spirit/pg_builder/nodes/IndexElement.php
++++ b/src/sad_spirit/pg_builder/nodes/IndexElement.php
+@@ -75,8 +75,8 @@
+      */
+     public function __construct(
+         Node $expression,
+-        QualifiedName $collation = null,
+-        QualifiedName $opClass = null,
++        ?QualifiedName $collation = null,
++        ?QualifiedName $opClass = null,
+         ?string $direction = null,
+         ?string $nullsOrder = null
+     ) {
+--- a/src/sad_spirit/pg_builder/nodes/IntervalTypeName.php
++++ b/src/sad_spirit/pg_builder/nodes/IntervalTypeName.php
+@@ -57,7 +57,7 @@
+     /** @var string */
+     protected $p_mask = '';
+ 
+-    public function __construct(TypeModifierList $typeModifiers = null)
++    public function __construct(?TypeModifierList $typeModifiers = null)
+     {
+         parent::__construct(new QualifiedName('pg_catalog', 'interval'), $typeModifiers);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/NonRecursiveNode.php
++++ b/src/sad_spirit/pg_builder/nodes/NonRecursiveNode.php
+@@ -46,7 +46,7 @@
+      *
+      * @param Node|null $parent
+      */
+-    public function setParentNode(Node $parent = null): void
++    public function setParentNode(?Node $parent = null): void
+     {
+         // no-op? recursion?
+         if ($parent === $this->parentNode || $this->settingParentNode) {
+--- a/src/sad_spirit/pg_builder/nodes/OnConflictClause.php
++++ b/src/sad_spirit/pg_builder/nodes/OnConflictClause.php
+@@ -64,9 +64,9 @@
+      */
+     public function __construct(
+         string $action,
+-        Node $target = null,
+-        SetClauseList $set = null,
+-        ScalarExpression $condition = null
++        ?Node $target = null,
++        ?SetClauseList $set = null,
++        ?ScalarExpression $condition = null
+     ) {
+         $this->generatePropertyNames();
+         $this->setAction($action);
+@@ -92,7 +92,7 @@
+      *
+      * @param IndexParameters|Identifier|null $target
+      */
+-    public function setTarget(Node $target = null): void
++    public function setTarget(?Node $target = null): void
+     {
+         if (self::UPDATE === $this->p_action && null === $target) {
+             throw new InvalidArgumentException("Target must be provided for ON CONFLICT ... DO UPDATE clause");
+--- a/src/sad_spirit/pg_builder/nodes/TargetElement.php
++++ b/src/sad_spirit/pg_builder/nodes/TargetElement.php
+@@ -35,7 +35,7 @@
+     /** @var Identifier|null */
+     protected $p_alias;
+ 
+-    public function __construct(ScalarExpression $expression, Identifier $alias = null)
++    public function __construct(ScalarExpression $expression, ?Identifier $alias = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/TypeName.php
++++ b/src/sad_spirit/pg_builder/nodes/TypeName.php
+@@ -52,7 +52,7 @@
+     /** @var TypeModifierList */
+     protected $p_modifiers;
+ 
+-    public function __construct(QualifiedName $typeName, TypeModifierList $typeModifiers = null)
++    public function __construct(QualifiedName $typeName, ?TypeModifierList $typeModifiers = null)
+     {
+         $this->generatePropertyNames();
+ 
+@@ -100,7 +100,7 @@
+         return $walker->walkTypeName($this);
+     }
+ 
+-    public function setParentNode(Node $parent = null): void
++    public function setParentNode(?Node $parent = null): void
+     {
+         if (
+             $parent instanceof ConstantTypecastExpression
+--- a/src/sad_spirit/pg_builder/nodes/WhereOrHavingClause.php
++++ b/src/sad_spirit/pg_builder/nodes/WhereOrHavingClause.php
+@@ -34,7 +34,7 @@
+     /** @var ScalarExpression|null */
+     protected $p_condition;
+ 
+-    public function __construct(ScalarExpression $condition = null)
++    public function __construct(?ScalarExpression $condition = null)
+     {
+         $this->generatePropertyNames();
+         $this->setCondition($condition);
+--- a/src/sad_spirit/pg_builder/nodes/WindowDefinition.php
++++ b/src/sad_spirit/pg_builder/nodes/WindowDefinition.php
+@@ -50,10 +50,10 @@
+     protected $p_frame = null;
+ 
+     public function __construct(
+-        Identifier $refName = null,
+-        ExpressionList $partition = null,
+-        OrderByList $order = null,
+-        WindowFrameClause $frame = null
++        ?Identifier $refName = null,
++        ?ExpressionList $partition = null,
++        ?OrderByList $order = null,
++        ?WindowFrameClause $frame = null
+     ) {
+         $this->generatePropertyNames();
+ 
+@@ -74,7 +74,7 @@
+         }
+     }
+ 
+-    public function setName(Identifier $name = null): void
++    public function setName(?Identifier $name = null): void
+     {
+         $this->setProperty($this->p_name, $name);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/WindowFrameBound.php
++++ b/src/sad_spirit/pg_builder/nodes/WindowFrameBound.php
+@@ -46,7 +46,7 @@
+     /** @var ScalarExpression|null */
+     protected $p_value = null;
+ 
+-    public function __construct(string $direction, ScalarExpression $value = null)
++    public function __construct(string $direction, ?ScalarExpression $value = null)
+     {
+         if (!isset(self::ALLOWED_DIRECTIONS[$direction])) {
+             throw new InvalidArgumentException("Unknown window frame direction '{$direction}'");
+@@ -57,7 +57,7 @@
+         $this->setValue($value);
+     }
+ 
+-    public function setValue(ScalarExpression $value = null): void
++    public function setValue(?ScalarExpression $value = null): void
+     {
+         if (!is_null($value) && !in_array($this->p_direction, [self::PRECEDING, self::FOLLOWING])) {
+             throw new InvalidArgumentException("Value can only be set for PRECEDING or FOLLOWING direction");
+--- a/src/sad_spirit/pg_builder/nodes/WindowFrameClause.php
++++ b/src/sad_spirit/pg_builder/nodes/WindowFrameClause.php
+@@ -65,7 +65,7 @@
+     public function __construct(
+         string $type,
+         WindowFrameBound $start,
+-        WindowFrameBound $end = null,
++        ?WindowFrameBound $end = null,
+         ?string $exclusion = null
+     ) {
+         $this->generatePropertyNames();
+--- a/src/sad_spirit/pg_builder/nodes/cte/CycleClause.php
++++ b/src/sad_spirit/pg_builder/nodes/cte/CycleClause.php
+@@ -71,8 +71,8 @@
+         $trackColumns,
+         $markColumn,
+         $pathColumn,
+-        ScalarExpression $markValue = null,
+-        ScalarExpression $markDefault = null
++        ?ScalarExpression $markValue = null,
++        ?ScalarExpression $markDefault = null
+     ) {
+         $this->generatePropertyNames();
+         $this->setTrackColumns($trackColumns);
+--- a/src/sad_spirit/pg_builder/nodes/expressions/CaseExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/CaseExpression.php
+@@ -60,8 +60,8 @@
+      */
+     public function __construct(
+         iterable $whenClauses,
+-        ScalarExpression $elseClause = null,
+-        ScalarExpression $argument = null
++        ?ScalarExpression $elseClause = null,
++        ?ScalarExpression $argument = null
+     ) {
+         if (null !== $elseClause && $elseClause === $argument) {
+             throw new InvalidArgumentException("Cannot use the same Node for CASE argument and ELSE clause");
+@@ -83,12 +83,12 @@
+         }
+     }
+ 
+-    public function setArgument(ScalarExpression $argument = null): void
++    public function setArgument(?ScalarExpression $argument = null): void
+     {
+         $this->setProperty($this->p_argument, $argument);
+     }
+ 
+-    public function setElse(ScalarExpression $elseClause = null): void
++    public function setElse(?ScalarExpression $elseClause = null): void
+     {
+         $this->setProperty($this->p_else, $elseClause);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/expressions/FunctionExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/FunctionExpression.php
+@@ -67,10 +67,10 @@
+         $arguments = null,
+         bool $distinct = false,
+         bool $variadic = false,
+-        OrderByList $orderBy = null,
++        ?OrderByList $orderBy = null,
+         bool $withinGroup = false,
+-        ScalarExpression $filter = null,
+-        WindowDefinition $over = null
++        ?ScalarExpression $filter = null,
++        ?WindowDefinition $over = null
+     ) {
+         parent::__construct($funcName, $arguments, $distinct, $variadic, $orderBy);
+         $this->p_withinGroup = $withinGroup;
+--- a/src/sad_spirit/pg_builder/nodes/expressions/NormalizeExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/NormalizeExpression.php
+@@ -60,7 +60,7 @@
+     /** @var string|null */
+     protected $p_form;
+ 
+-    public function __construct(ScalarExpression $argument, string $form = null)
++    public function __construct(ScalarExpression $argument, ?string $form = null)
+     {
+         if (null !== $form && !in_array($form, self::FORMS, true)) {
+             throw new InvalidArgumentException("Unknown normalization form '$form' in NormalizeExpression");
+--- a/src/sad_spirit/pg_builder/nodes/expressions/OperatorExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/OperatorExpression.php
+@@ -116,7 +116,7 @@
+         }
+     }
+ 
+-    public function setLeft(ScalarExpression $left = null): void
++    public function setLeft(?ScalarExpression $left = null): void
+     {
+         $this->setProperty($this->p_left, $left);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/expressions/OverlayExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/OverlayExpression.php
+@@ -58,7 +58,7 @@
+         ScalarExpression $string,
+         ScalarExpression $newSubstring,
+         ScalarExpression $start,
+-        ScalarExpression $count = null
++        ?ScalarExpression $count = null
+     ) {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/expressions/PatternMatchingExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/PatternMatchingExpression.php
+@@ -63,7 +63,7 @@
+         ScalarExpression $pattern,
+         string $operator = self::LIKE,
+         bool $not = false,
+-        ScalarExpression $escape = null
++        ?ScalarExpression $escape = null
+     ) {
+         if (!isset(self::ALLOWED_OPERATORS[$operator])) {
+             throw new InvalidArgumentException("Unknown operator '{$operator}' for pattern matching expression");
+@@ -99,7 +99,7 @@
+         $this->setRequiredProperty($this->p_pattern, $pattern);
+     }
+ 
+-    public function setEscape(ScalarExpression $escape = null): void
++    public function setEscape(?ScalarExpression $escape = null): void
+     {
+         $this->setProperty($this->p_escape, $escape);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/expressions/SQLValueFunction.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/SQLValueFunction.php
+@@ -93,7 +93,7 @@
+     /** @var NumericConstant|null */
+     protected $p_modifier;
+ 
+-    public function __construct(string $name, NumericConstant $modifier = null)
++    public function __construct(string $name, ?NumericConstant $modifier = null)
+     {
+         if (null === self::$nameCheck) {
+             self::$nameCheck = array_flip(array_merge(self::NO_MODIFIERS, self::OPTIONAL_MODIFIERS));
+--- a/src/sad_spirit/pg_builder/nodes/expressions/SubstringFromExpression.php
++++ b/src/sad_spirit/pg_builder/nodes/expressions/SubstringFromExpression.php
+@@ -53,8 +53,8 @@
+ 
+     public function __construct(
+         ScalarExpression $string,
+-        ScalarExpression $from = null,
+-        ScalarExpression $for = null
++        ?ScalarExpression $from = null,
++        ?ScalarExpression $for = null
+     ) {
+         if (null === $from && null === $for) {
+             throw new InvalidArgumentException("At least one of FROM and FOR arguments is required");
+--- a/src/sad_spirit/pg_builder/nodes/json/JsonFormattedValue.php
++++ b/src/sad_spirit/pg_builder/nodes/json/JsonFormattedValue.php
+@@ -39,7 +39,7 @@
+     /** @var JsonFormat|null */
+     protected $p_format = null;
+ 
+-    public function __construct(ScalarExpression $expression, JsonFormat $format = null)
++    public function __construct(ScalarExpression $expression, ?JsonFormat $format = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/range/ColumnDefinition.php
++++ b/src/sad_spirit/pg_builder/nodes/range/ColumnDefinition.php
+@@ -47,7 +47,7 @@
+     /** @var QualifiedName|null */
+     protected $p_collation = null;
+ 
+-    public function __construct(Identifier $colId, TypeName $type, QualifiedName $collation = null)
++    public function __construct(Identifier $colId, TypeName $type, ?QualifiedName $collation = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/range/FromElement.php
++++ b/src/sad_spirit/pg_builder/nodes/range/FromElement.php
+@@ -50,7 +50,7 @@
+      * @param Identifier|null $tableAlias
+      * @param IdentifierList|null $columnAliases
+      */
+-    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
++    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
+     {
+         $this->setTableAlias($tableAlias);
+         $this->setColumnAliases($columnAliases);
+--- a/src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php
++++ b/src/sad_spirit/pg_builder/nodes/range/FunctionFromElement.php
+@@ -53,7 +53,7 @@
+      * @param Identifier|null                          $tableAlias
+      * @param IdentifierList|ColumnDefinitionList|null $columnAliases
+      */
+-    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
++    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
+     {
+         $this->setTableAlias($tableAlias);
+         $this->setColumnAliases($columnAliases);
+--- a/src/sad_spirit/pg_builder/nodes/range/InsertTarget.php
++++ b/src/sad_spirit/pg_builder/nodes/range/InsertTarget.php
+@@ -46,7 +46,7 @@
+     /** @var Identifier|null */
+     protected $p_alias = null;
+ 
+-    public function __construct(QualifiedName $relation, Identifier $alias = null)
++    public function __construct(QualifiedName $relation, ?Identifier $alias = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/range/RowsFromElement.php
++++ b/src/sad_spirit/pg_builder/nodes/range/RowsFromElement.php
+@@ -44,7 +44,7 @@
+     /** @var ColumnDefinitionList */
+     protected $p_columnAliases;
+ 
+-    public function __construct(FunctionLike $function, ColumnDefinitionList $columnAliases = null)
++    public function __construct(FunctionLike $function, ?ColumnDefinitionList $columnAliases = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/range/TableSample.php
++++ b/src/sad_spirit/pg_builder/nodes/range/TableSample.php
+@@ -54,7 +54,7 @@
+         RelationReference $relation,
+         QualifiedName $method,
+         ExpressionList $arguments,
+-        ScalarExpression $repeatable = null
++        ?ScalarExpression $repeatable = null
+     ) {
+         $this->generatePropertyNames();
+ 
+@@ -78,12 +78,12 @@
+         $this->setRequiredProperty($this->p_method, $method);
+     }
+ 
+-    public function setRepeatable(ScalarExpression $repeatable = null): void
++    public function setRepeatable(?ScalarExpression $repeatable = null): void
+     {
+         $this->setProperty($this->p_repeatable, $repeatable);
+     }
+ 
+-    public function setAlias(Identifier $tableAlias = null, NodeList $columnAliases = null): void
++    public function setAlias(?Identifier $tableAlias = null, ?NodeList $columnAliases = null): void
+     {
+         $this->p_relation->setAlias($tableAlias, $columnAliases);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/range/UpdateOrDeleteTarget.php
++++ b/src/sad_spirit/pg_builder/nodes/range/UpdateOrDeleteTarget.php
+@@ -36,7 +36,7 @@
+     /** @var bool|null */
+     protected $p_inherit;
+ 
+-    public function __construct(QualifiedName $relation, Identifier $alias = null, ?bool $inheritOption = null)
++    public function __construct(QualifiedName $relation, ?Identifier $alias = null, ?bool $inheritOption = null)
+     {
+         $this->generatePropertyNames();
+         parent::__construct($relation, $alias);
+--- a/src/sad_spirit/pg_builder/nodes/range/XmlTable.php
++++ b/src/sad_spirit/pg_builder/nodes/range/XmlTable.php
+@@ -56,7 +56,7 @@
+         ScalarExpression $rowExpression,
+         ScalarExpression $documentExpression,
+         XmlColumnList $columns,
+-        XmlNamespaceList $namespaces = null
++        ?XmlNamespaceList $namespaces = null
+     ) {
+         if ($rowExpression === $documentExpression) {
+             throw new InvalidArgumentException("Cannot use the same Node for row and document expressions");
+--- a/src/sad_spirit/pg_builder/nodes/xml/XmlElement.php
++++ b/src/sad_spirit/pg_builder/nodes/xml/XmlElement.php
+@@ -51,7 +51,7 @@
+     /** @var ExpressionList */
+     protected $p_content;
+ 
+-    public function __construct(Identifier $name, TargetList $attributes = null, ExpressionList $content = null)
++    public function __construct(Identifier $name, ?TargetList $attributes = null, ?ExpressionList $content = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/xml/XmlNamespace.php
++++ b/src/sad_spirit/pg_builder/nodes/xml/XmlNamespace.php
+@@ -40,7 +40,7 @@
+     /** @var Identifier|null */
+     protected $p_alias = null;
+ 
+-    public function __construct(ScalarExpression $value, Identifier $alias = null)
++    public function __construct(ScalarExpression $value, ?Identifier $alias = null)
+     {
+         $this->generatePropertyNames();
+ 
+@@ -58,7 +58,7 @@
+         $this->setRequiredProperty($this->p_value, $value);
+     }
+ 
+-    public function setAlias(Identifier $alias = null): void
++    public function setAlias(?Identifier $alias = null): void
+     {
+         $this->setProperty($this->p_alias, $alias);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/xml/XmlPi.php
++++ b/src/sad_spirit/pg_builder/nodes/xml/XmlPi.php
+@@ -44,7 +44,7 @@
+     /** @var ScalarExpression|null */
+     protected $p_content = null;
+ 
+-    public function __construct(Identifier $name, ScalarExpression $content = null)
++    public function __construct(Identifier $name, ?ScalarExpression $content = null)
+     {
+         $this->generatePropertyNames();
+ 
+--- a/src/sad_spirit/pg_builder/nodes/xml/XmlRoot.php
++++ b/src/sad_spirit/pg_builder/nodes/xml/XmlRoot.php
+@@ -57,7 +57,7 @@
+     /** @var string|null */
+     protected $p_standalone;
+ 
+-    public function __construct(ScalarExpression $xml, ScalarExpression $version = null, ?string $standalone = null)
++    public function __construct(ScalarExpression $xml, ?ScalarExpression $version = null, ?string $standalone = null)
+     {
+         if ($version === $xml) {
+             throw new InvalidArgumentException("Cannot use the same Node for xml and version arguments");
+@@ -84,7 +84,7 @@
+         $this->setRequiredProperty($this->p_xml, $xml);
+     }
+ 
+-    public function setVersion(ScalarExpression $version = null): void
++    public function setVersion(?ScalarExpression $version = null): void
+     {
+         $this->setProperty($this->p_version, $version);
+     }
+--- a/src/sad_spirit/pg_builder/nodes/xml/XmlTypedColumnDefinition.php
++++ b/src/sad_spirit/pg_builder/nodes/xml/XmlTypedColumnDefinition.php
+@@ -50,9 +50,9 @@
+     public function __construct(
+         Identifier $name,
+         TypeName $type,
+-        ScalarExpression $path = null,
++        ?ScalarExpression $path = null,
+         ?bool $nullable = null,
+-        ScalarExpression $default = null
++        ?ScalarExpression $default = null
+     ) {
+         if (null !== $path && $path === $default) {
+             throw new InvalidArgumentException("Cannot use the same Node for path and default arguments");
+@@ -81,7 +81,7 @@
+         $this->setRequiredProperty($this->p_type, $type);
+     }
+ 
+-    public function setPath(ScalarExpression $path = null): void
++    public function setPath(?ScalarExpression $path = null): void
+     {
+         $this->setProperty($this->p_path, $path);
+     }
+@@ -91,7 +91,7 @@
+         $this->p_nullable = $nullable;
+     }
+ 
+-    public function setDefault(ScalarExpression $default = null): void
++    public function setDefault(?ScalarExpression $default = null): void
+     {
+         $this->setProperty($this->p_default, $default);
+     }

@@ -71,8 +71,8 @@ class CycleClause extends GenericNode
         $trackColumns,
         $markColumn,
         $pathColumn,
-        ScalarExpression $markValue = null,
-        ScalarExpression $markDefault = null
+        ?ScalarExpression $markValue = null,
+        ?ScalarExpression $markDefault = null
     ) {
         $this->generatePropertyNames();
         $this->setTrackColumns($trackColumns);

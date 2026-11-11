@@ -39,7 +39,7 @@ class JsonFormattedValue extends GenericNode
     /** @var JsonFormat|null */
     protected $p_format = null;
 
-    public function __construct(ScalarExpression $expression, JsonFormat $format = null)
+    public function __construct(ScalarExpression $expression, ?JsonFormat $format = null)
     {
         $this->generatePropertyNames();
 

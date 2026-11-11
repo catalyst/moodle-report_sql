@@ -212,7 +212,7 @@ abstract class GenericNode implements Node, \Serializable
     /**
      * {@inheritDoc}
      */
-    public function setParentNode(Node $parent = null): void
+    public function setParentNode(?Node $parent = null): void
     {
         // no-op? recursion?
         if ($parent === $this->parentNode || $this->settingParentNode) {
