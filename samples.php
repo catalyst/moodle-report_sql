@@ -243,7 +243,7 @@ echo $OUTPUT->render_from_template('report_sql/samples_list', [
     'actionurl' => (new moodle_url('/report/sql/samples.php'))->out(false),
     'cancelurl' => $indexurl->out(false),
     'sesskey'   => sesskey(),
-    // "Show all" reveal: offered only when at least one sample needs an uninstalled plugin. The
+    // The "Show all" reveal is offered only when at least one sample needs an uninstalled plugin. The
     // toggle is a small GET form (report_sql/samples AMD submits it on change) that flips ?showall.
     'hasunavailable' => $unavailablecount > 0,
     'showall'        => (bool) $showall,

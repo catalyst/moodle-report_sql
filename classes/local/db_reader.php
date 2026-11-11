@@ -48,8 +48,9 @@ class db_reader {
             try {
                 return $DB->get_readonly_connection();
             } catch (\Exception $e) {
-                // Silently fall back if there's any error getting the read-only connection.
-                // In future versions, we can log a warning here for admins.
+                // Fall back to the default connection if the read-only connection fails.
+                // In future versions, log a warning here for admins as well.
+                debugging('report_sql: failed to get read-only database connection: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
         }
 

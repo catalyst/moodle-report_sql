@@ -225,7 +225,9 @@ final class sql_validator_test extends \advanced_testcase {
             'quoted denied table and column' => ['SELECT "token" FROM "{prefix}external_tokens"'],
             'quoted denied column'           => ['SELECT "password" FROM {user}'],
             'quoted aliased denied column'   => ['SELECT "password" AS pw FROM {user}'],
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Test MySQL quoted-identifier bypasses.
             'backtick denied column'         => ['SELECT `password` FROM {user}'],
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Test MySQL quoted-identifier bypasses.
             'backtick prefixed denied table' => ['SELECT * FROM `{prefix}config`'],
         ];
     }

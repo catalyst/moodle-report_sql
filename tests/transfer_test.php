@@ -331,7 +331,7 @@ final class transfer_test extends \advanced_testcase {
     }
 
     public function test_detect_requires_flags_thirdparty_table(): void {
-        // block_configurable_reports is a third-party plugin installed on this test site; a query
+        // The block_configurable_reports plugin is a third-party plugin installed on this test site; a query
         // over its table is detected as requiring that component, while the core {course} join it
         // also references is ignored.
         if (!\core_component::get_component_directory('block_configurable_reports')) {

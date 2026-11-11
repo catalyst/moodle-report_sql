@@ -250,7 +250,7 @@ final class analyser_test extends \advanced_testcase {
      */
     public function test_column_index_status_flags_bare_columns(): void {
         $this->resetAfterTest();
-        // {user}.id is the primary key (indexed); {user}.description has no index.
+        // The {user}.id column is the primary key (indexed); {user}.description has no index.
         $result = analyser::analyse('SELECT id, description FROM {user}');
         $this->assertTrue($result['ok']);
         $bycol = [];

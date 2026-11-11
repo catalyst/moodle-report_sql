@@ -171,7 +171,13 @@ class embed_renderer {
         }
 
         // Apply the x-column's %%CASE%% transform to the labels, matching the data report and chart.php.
-        [$labels, $values] = chart_presenter::chart_series($rows, $xcol, $ycol, $query->column_textcase($xcol), $query->column_dateformat($xcol));
+        [$labels, $values] = chart_presenter::chart_series(
+            $rows,
+            $xcol,
+            $ycol,
+            $query->column_textcase($xcol),
+            $query->column_dateformat($xcol)
+        );
         $type = (string) $chartmeta['type'];
 
         // Category/legend label font size, clamped to the same range as the edit form and RB chart report.

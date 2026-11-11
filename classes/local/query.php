@@ -1149,7 +1149,7 @@ class query {
      * @param \stdClass $record
      */
     private static function tear_down(int $queryid, \stdClass $record): void {
-        // reporthelper::delete_report() fires \core_reportbuilder\event\report_deleted, which our own
+        // The reporthelper::delete_report() call fires \core_reportbuilder\event\report_deleted, which our own
         // observer listens to. Flag the reentry so on_report_deleted() ignores deletions we initiate
         // here (unpublish / SQL-change republish / healing) and only reacts to external ones.
         self::$tearingdown = true;
@@ -1489,6 +1489,7 @@ class query {
             }
             $parts = preg_split('/\s+/', $term);
             $token = preg_replace('/^\{?\w+\}?\./', '', $parts[0]); // Strip {table}. or alias. prefix.
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Strip SQL identifier delimiters.
             $token = strtolower(trim($token, '`"[]{}'));
             if ($token === '' || ctype_digit($token)) {
                 continue; // Skip ordinal positions (ORDER BY 1) and empties.

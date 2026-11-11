@@ -450,6 +450,7 @@ class validator {
         $sql = preg_replace('/#[^\n]*/', ' ', $sql) ?? '';
         $sql = preg_replace("/'(?:[^']|'')*'/", "''", $sql) ?? '';
 
+        // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Match MySQL quoted identifiers.
         if (!preg_match_all('/"((?:[^"]|"")*)"|`((?:[^`]|``)*)`/', $sql, $matches, PREG_SET_ORDER)) {
             return;
         }
@@ -458,6 +459,7 @@ class validator {
         $tables = self::denied_tables();
         $columns = self::denied_columns();
         foreach ($matches as $m) {
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Decode doubled identifier delimiters.
             $name = strtolower(trim(str_replace(['""', '``'], '', ($m[1] ?? '') . ($m[2] ?? ''))));
             if ($name === '') {
                 continue;

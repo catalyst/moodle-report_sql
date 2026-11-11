@@ -239,7 +239,7 @@ final class embed_renderer_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        // $show force-keeps a key column that would otherwise be auto-hidden.
+        // The $show argument force-keeps a key column that would otherwise be auto-hidden.
         $query = $this->published(
             'SELECT id AS userid, '
             . "%%LINK(username, userid, '/user/view.php?id={}')%% AS who FROM {user}"

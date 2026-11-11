@@ -113,7 +113,7 @@ trait import_helper {
         // change the result, so those nested calls are left native ($skipfunctionargs = true) and fall
         // through to the keep-on-MySQL / reject-elsewhere sweep below.
 
-        // DATE_FORMAT(FROM_UNIXTIME(e), 'fmt') and DATE_FORMAT(FROM_UNIXTIME(e, ...), 'fmt').
+        // Rewrite DATE_FORMAT wrapping FROM_UNIXTIME, with either function supplying the format.
         $sql = self::replace_calls($sql, 'DATE_FORMAT', function (array $args) use (&$changed) {
             if (count($args) !== 2) {
                 return null; // Unsupported shape -> leave for the fatal sweep below.
@@ -132,7 +132,7 @@ trait import_helper {
             return '%%TIMESTAMP(' . $expr . ($neutral === '' ? '' : ', ' . $neutral) . ')%%';
         }, true);
 
-        // FROM_UNIXTIME(e) and FROM_UNIXTIME(e, 'fmt').
+        // Rewrite standalone FROM_UNIXTIME calls, with or without a format argument.
         $sql = self::replace_calls($sql, 'FROM_UNIXTIME', function (array $args) use (&$changed) {
             if (count($args) < 1 || count($args) > 2) {
                 return null;

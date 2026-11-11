@@ -234,7 +234,7 @@ class analyser {
         try {
             $count = $db->count_records_sql("SELECT COUNT(*) FROM ({$resolved}) rs_count");
         } catch (\dml_exception $e) {
-            // dry_run() already caught syntax errors, so a failure here is the timeout cap (or a
+            // The dry_run() probe already caught syntax errors, so a failure here is the timeout cap (or a
             // resource limit) on a slow/huge query — warn instead of silently showing no count.
             $warnings[] = get_string('checkrowcounttimeout', 'report_sql', (int) round(self::PROBE_TIMEOUT_MS / 1000));
             return -1;
@@ -380,6 +380,7 @@ class analyser {
             // Take the identifier, drop a trailing ASC/DESC and any NULLS FIRST/LAST.
             $token = preg_split('/\s+/', $term)[0];
             $token = preg_replace('/^\{?\w+\}?\./', '', $token); // Strip {table}. or alias. prefix.
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Strip SQL identifier delimiters.
             $token = strtolower(trim($token, '`"[]{}'));
             if ($token !== '' && !ctype_digit($token)) {
                 $cols[$token] = true;
@@ -505,8 +506,10 @@ class analyser {
      * @return array{0: string, 1: string} [expression (alias stripped), alias (empty when none)].
      */
     private static function split_item_alias(string $orig, string $maskitem): array {
+        // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Match SQL identifier delimiters.
         if (preg_match('/\bas\s+(["`]?)(\w+)\1\s*$/i', $maskitem, $am, PREG_OFFSET_CAPTURE)) {
             $expr = substr($orig, 0, $am[0][1]);
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Strip SQL identifier delimiters.
             $alias = trim((string) preg_replace('/^\s*as\s+/i', '', substr($orig, $am[0][1])), " `\"");
             return [$expr, $alias];
         }
@@ -828,6 +831,7 @@ class analyser {
                 $j = ($j === false) ? $n : $j;
                 $out = substr_replace($out, str_repeat(' ', $j - $i), $i, $j - $i);
                 $i = $j;
+            // phpcs:ignore moodle.Strings.ForbiddenStrings.Found -- Recognise SQL string and identifier delimiters.
             } else if ($sql[$i] === "'" || $sql[$i] === '"' || $sql[$i] === '`' || $sql[$i] === '[') {
                 $close = $sql[$i] === '[' ? ']' : $sql[$i];
                 $out[$i] = ' ';

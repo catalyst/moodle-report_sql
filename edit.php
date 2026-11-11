@@ -264,7 +264,7 @@ if ($mform->is_cancelled()) {
                 \core\output\notification::NOTIFY_ERROR
             );
         }
-        // "Publish and continue editing" reopens this (now published) form to iterate — the chart /
+        // The "Publish and continue editing" action reopens this (now published) form to iterate — the chart /
         // filter sections are unlocked on the reopen. Anchor to the first unlocked section (per-user
         // filter header) so the form scrolls down to the newly available controls near the button,
         // rather than landing at the top. Plain "Save and publish" returns to the index.
