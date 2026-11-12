@@ -124,7 +124,7 @@ class view {
                 usleep($attempt * 500000);
             }
             try {
-                $replica->get_records_sql('SELECT 1 FROM {' . $viewname . '}', null, 0, 1);
+                $replica->get_records_sql('SELECT 1 FROM {' . $viewname . '} WHERE 1 = 0', null, 0, 1);
                 return true;
             } catch (\dml_exception $e) {
                 continue;
