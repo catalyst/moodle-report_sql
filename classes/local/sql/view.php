@@ -104,16 +104,16 @@ class view {
      * Wait until a freshly created VIEW is visible on the read-only replica, when one is configured.
      *
      * Report Builder tables read from the read-only connection, so a view created a moment ago on the
-     * write handle can be missing there until replication catches up. No-op when there is no replica
-     * (or the running Moodle has no read-only connection API).
+    * write handle can be missing there until replication catches up. No-op when there is confirmed
+    * to be no replica; otherwise, check whether the view can be read from the read-only connection.
      *
      * @param string $viewname View name without the Moodle prefix.
      * @param int $retries Number of retries after the first check; each waits longer than the last.
-     * @return bool True when the view is readable (or no replica is in use), false once retries run out.
+    * @return bool True when the view is readable or no replica is in use, false once retries run out.
      */
     public static function wait_for_replica(string $viewname, int $retries = 3): bool {
         global $DB;
-        if (!method_exists($DB, 'has_readonly_connection') || !$DB->has_readonly_connection()) {
+        if (method_exists($DB, 'has_readonly_connection') && !$DB->has_readonly_connection()) {
             return true;
         }
 

@@ -30,6 +30,44 @@ use report_sql\local\sql\view;
  */
 final class view_test extends \advanced_testcase {
     /**
+     * An unknown replica state must not be treated as confirmation that no replica is in use.
+     */
+    public function test_wait_for_replica_requires_known_connection_state(): void {
+        global $DB;
+
+        $originaldb = $DB;
+        try {
+            $replica = new class {
+                public int $reads = 0;
+
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    $this->reads++;
+                    return [];
+                }
+            };
+            $DB = new class ($replica) {
+                public function __construct(private object $replica) {
+                }
+
+                public function get_readonly_connection(): object {
+                    return $this->replica;
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 0));
+            $this->assertSame(1, $replica->reads);
+
+            $DB = new class {
+                public function has_readonly_connection(): bool {
+                    return false;
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 0));
+        } finally {
+            $DB = $originaldb;
+        }
+    }
+
+    /**
      * %%TIMESTAMP(expr[, format])%% resolves to the bare epoch expression — no DB date function,
      * format dropped — so the column stays an integer that sorts chronologically.
      */
