@@ -32,7 +32,10 @@ require_once($CFG->libdir . '/adminlib.php');
 use core_reportbuilder\system_report_factory;
 use report_sql\reportbuilder\local\systemreports\usage;
 
+// The listing is the active parent, so tabs and the breadcrumb trail run through index.php.
+navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
 admin_externalpage_setup('report_sql_usage');
+$PAGE->navbar->add(get_string('usage:title', 'report_sql'));
 
 $context = context_system::instance();
 require_capability('report/sql:viewall', $context);
