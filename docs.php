@@ -88,5 +88,31 @@ $html = preg_replace_callback(
     $html
 );
 
-echo $OUTPUT->box($html, 'generalbox rs-docs');
+// Lift the "Contents" list out of the flow. It is output first so on small and medium screens it sits
+// at the top of the content, and on large screens (see styles.css) it floats in the left margin outside
+// the content box without narrowing it (the list is rendered twice, once per breakpoint).
+$toc = '';
+if (preg_match('/<h2 id="contents">.*?<\/ol>/s', $html, $m)) {
+    $toc = $m[0];
+    $html = str_replace($m[0], '', $html);
+    // The "---" rules on either side of the list would leave a double divider behind.
+    $html = preg_replace('/(<hr\s*\/?>\s*){2,}/', '<hr />', $html, 1);
+}
+
+// Below xxl the list is plain content at the top of the box. From xxl up it floats in the left page margin
+// (as in mod_cms's type edit page): absolutely positioned outside a relative wrapper, sticky within it.
+$floating = '';
+if ($toc !== '') {
+    $floating = html_writer::tag(
+        'nav',
+        html_writer::div($toc, 'position-sticky overflow-auto', ['style' => 'top: 9rem; max-height: calc(100vh - 10rem);']),
+        [
+            'class' => 'rs-docs-toc d-none d-xxl-block position-absolute top-0 bottom-0 end-100 me-3',
+            'style' => 'width: 16rem;',
+            'aria-label' => get_string('userdocs', 'report_sql'),
+        ]
+    );
+    $toc = html_writer::div($toc, 'd-xxl-none mb-4');
+}
+echo html_writer::div($floating . $OUTPUT->box($toc . $html, 'generalbox rs-docs'), 'position-relative');
 echo $OUTPUT->footer();

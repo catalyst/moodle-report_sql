@@ -65,6 +65,14 @@
     height: auto;
 }
 
+/* Docs floating contents: about 30% wider on very wide screens, where the left margin has room.
+   !important is needed to override the inline width set in docs.php. */
+@media (min-width: 1600px) {
+    .rs-docs-toc {
+        width: 23rem !important;
+    }
+}
+
 /* Error / warning alerts echo the author's SQL from the DB error. Preserve its linebreaks and
    indentation (Bootstrap .alert collapses whitespace by default) so the offending query stays
    readable instead of squashing onto one line; word-break keeps a long single line from
