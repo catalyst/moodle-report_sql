@@ -83,6 +83,9 @@ class view {
      * @throws \moodle_exception
      */
     public static function create_or_replace_preview(int $userid, string $validatedsql, int $courseid = 0): string {
+        // Clear any stale preview view first: CREATE OR REPLACE VIEW cannot rename or drop columns, so a
+        // leftover from an interrupted request (or an overlapping one) would make a different query fail.
+        self::drop_preview($userid);
         return self::issue_create_or_replace(self::preview_name_for($userid), $validatedsql, $courseid);
     }
 
@@ -95,6 +98,39 @@ class view {
         global $DB, $CFG;
         $fullname = $CFG->prefix . self::preview_name_for($userid);
         $DB->change_database_structure("DROP VIEW IF EXISTS {$fullname}");
+    }
+
+    /**
+     * Wait until a freshly created VIEW is visible on the read-only replica, when one is configured.
+     *
+     * Report Builder tables read from the read-only connection, so a view created a moment ago on the
+     * write handle can be missing there until replication catches up. No-op when there is no replica
+     * (or the running Moodle has no read-only connection API).
+     *
+     * @param string $viewname View name without the Moodle prefix.
+     * @param int $retries Number of retries after the first check; each waits longer than the last.
+     * @return bool True when the view is readable (or no replica is in use), false once retries run out.
+     */
+    public static function wait_for_replica(string $viewname, int $retries = 3): bool {
+        global $DB;
+        if (!method_exists($DB, 'has_readonly_connection') || !$DB->has_readonly_connection()) {
+            return true;
+        }
+
+        $replica = $DB->get_readonly_connection();
+        for ($attempt = 0; $attempt <= $retries; $attempt++) {
+            if ($attempt > 0) {
+                // Incrementing back-off: 0.5s, 1s, 1.5s.
+                usleep($attempt * 500000);
+            }
+            try {
+                $replica->get_records_sql('SELECT 1 FROM {' . $viewname . '}', null, 0, 1);
+                return true;
+            } catch (\dml_exception $e) {
+                continue;
+            }
+        }
+        return false;
     }
 
     /**
@@ -811,7 +847,12 @@ RULES;
                  WHERE table_schema = current_schema()
                    AND table_name = ?
               ORDER BY ordinal_position";
+        // The view was only just created on the write handle, and this lookup names no Moodle table, so
+        // outside a transaction core would route it to a configured read-only replica that may not see
+        // the view yet (yielding zero columns). SELECTs inside a transaction always use the write handle.
+        $transaction = $DB->start_delegated_transaction();
         $rows = $DB->get_records_sql($sql, [$fullname]);
+        $transaction->allow_commit();
         $columns = [];
         foreach ($rows as $row) {
             $columns[$row->column_name] = (object) ['meta_type' => self::pg_meta_type($row->data_type)];

@@ -244,6 +244,7 @@ $string['erraudiencerolesempty'] = 'Choose at least one role.';
 $string['errchartdata'] = 'The report data for this chart could not be loaded. Contact the report owner if this persists.';
 $string['errchartnotconfigured'] = 'No chart is configured for this query. Edit the query to add chart settings.';
 $string['errchartnotpublished'] = 'This query is not published. Publish it first before viewing the chart.';
+$string['errreplicalag'] = 'The preview view is not yet available on the read-only database replica. Please try again in a moment.';
 $string['errcolumnnoalias'] = 'The column "{$a}" is an expression with no name. Give every calculated or aggregate column an alias, e.g. SELECT count(*) AS total FROM course.';
 $string['errcourseidplaceholder'] = 'The SQL uses %%COURSEID%%, so this report needs a fixed course scope. Choose a course above before saving — or, to show each course its own data in a block, remove the %%COURSEID%% filter from the SQL, output the course id column, and set "Restrict to the course the block is on" instead.';
 $string['errcreateview'] = '{$a}';
