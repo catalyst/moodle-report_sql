@@ -60,6 +60,9 @@ report_sql_require_enabled();
 // SQL Report) so editing highlights the right menu entry and builds a breadcrumb back to the
 // listing, rather than a bare Home ▸ heading trail. The edit page's own url/title override the
 // node's afterwards; the edit/new leaf is appended once $existing is known.
+// Treat the listing as the active page for the primary/secondary navigation and breadcrumb, so this
+// edit page sits under it rather than being unmatched.
+navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
 admin_externalpage_setup(
     'report_sql_index',
     '',
