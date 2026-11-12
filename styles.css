@@ -69,6 +69,7 @@
    !important is needed to override the inline width set in docs.php. */
 @media (min-width: 1600px) {
     .rs-docs-toc {
+        /* stylelint-disable-next-line declaration-no-important -- must override the inline width. */
         width: 23rem !important;
     }
 }
