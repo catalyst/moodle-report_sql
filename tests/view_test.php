@@ -30,6 +30,112 @@ use report_sql\local\sql\view;
  */
 final class view_test extends \advanced_testcase {
     /**
+     * An unknown replica state must not be treated as confirmation that no replica is in use.
+     */
+    public function test_wait_for_replica_requires_known_connection_state(): void {
+        global $DB;
+
+        $originaldb = $DB;
+        try {
+            $replica = new class {
+                /** @var int Number of reads performed. */
+                public int $reads = 0;
+
+                /**
+                 * Stub read that records the call and returns no rows.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    $this->reads++;
+                    return [];
+                }
+            };
+            $DB = new class ($replica) {
+                /** @var object The replica connection to hand back. */
+                private object $replica;
+
+                /**
+                 * Wrap the replica stub.
+                 *
+                 * @param object $replica
+                 */
+                public function __construct(object $replica) {
+                    $this->replica = $replica;
+                }
+
+                /**
+                 * Stub returning the replica connection.
+                 *
+                 * @return object
+                 */
+                public function get_readonly_connection(): object {
+                    return $this->replica;
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 1));
+            $this->assertSame(1, $replica->reads);
+
+            $DB = new class {
+                /**
+                 * Stub reporting that no read-only connection is in use.
+                 *
+                 * @return bool
+                 */
+                public function has_readonly_connection(): bool {
+                    return false;
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 1));
+
+            // Moodle without the read-only connection API: check the main database instead of failing.
+            $DB = new class {
+                /** @var int Number of reads performed. */
+                public int $reads = 0;
+
+                /**
+                 * Stub read that records the call and returns no rows.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    $this->reads++;
+                    return [];
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 1));
+            $this->assertSame(1, $DB->reads);
+
+            // The view never becomes readable: give up once the checks run out.
+            $DB = new class {
+                /**
+                 * Stub read that always fails as if the view were missing.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    throw new \dml_read_exception('missing view');
+                }
+            };
+            $this->assertFalse(view::wait_for_replica('test', 1));
+        } finally {
+            $DB = $originaldb;
+        }
+    }
+
+    /**
      * %%TIMESTAMP(expr[, format])%% resolves to the bare epoch expression — no DB date function,
      * format dropped — so the column stays an integer that sorts chronologically.
      */

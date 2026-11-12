@@ -242,6 +242,11 @@ function report_sql_output_fragment_preview(array $args): string {
         $viewname = \report_sql\local\sql\view::create_or_replace_preview($USER->id, $validated, $courseid);
         $columns = \report_sql\local\sql\view::columns($viewname);
 
+        // The preview table reads from the read-only replica (if any), so the new view must be visible there.
+        if (!\report_sql\local\sql\view::wait_for_replica($viewname)) {
+            throw new \moodle_exception('errreplicalag', 'report_sql');
+        }
+
         // An unaliased expression yields a view column RB cannot build — fail with a clear message.
         if (($badcol = \report_sql\local\sql\view::first_unaliased_column($columns)) !== null) {
             $errkey = preg_match('/\s/', $badcol) ? 'erraliasspaces' : 'errcolumnnoalias';
