@@ -43,7 +43,7 @@ Everything starts from the **Saved SQL reports** list (*Site admin → Reports �
 
 ## Requirements
 
-- Moodle 4.5 – 5.2 (stable Report Builder API).
+- Moodle 4.5 – 5.3 (stable Report Builder API).
 - The Moodle database user must have `CREATE VIEW` and `DROP` privileges on the schema.
 
 Confirm the privileges from **Site admin → Reports → SQL Report → Run database view privilege test**.

@@ -41,10 +41,16 @@ user documentation for setup.
 
 ## Requirements
 
-- Moodle 4.5 – 5.2
+- Moodle 4.5 – 5.3
 - A database account with permission to create and drop database views.
 
 Check the privilege from **Site admin → Reports → SQL Report → Run database view privilege test**.
+
+### Supported branches
+
+| Moodle version | Branch              |
+|----------------|---------------------|
+| 4.5 – 5.3      | `MOODLE_405_STABLE` |
 
 ### SQL validation
 
