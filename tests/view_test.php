@@ -53,7 +53,7 @@ final class view_test extends \advanced_testcase {
                     return $this->replica;
                 }
             };
-            $this->assertTrue(view::wait_for_replica('test', 0));
+            $this->assertTrue(view::wait_for_replica('test', 1));
             $this->assertSame(1, $replica->reads);
 
             $DB = new class {
@@ -61,7 +61,27 @@ final class view_test extends \advanced_testcase {
                     return false;
                 }
             };
-            $this->assertTrue(view::wait_for_replica('test', 0));
+            $this->assertTrue(view::wait_for_replica('test', 1));
+
+            // Moodle without the read-only connection API: check the main database instead of failing.
+            $DB = new class {
+                public int $reads = 0;
+
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    $this->reads++;
+                    return [];
+                }
+            };
+            $this->assertTrue(view::wait_for_replica('test', 1));
+            $this->assertSame(1, $DB->reads);
+
+            // The view never becomes readable: give up once the checks run out.
+            $DB = new class {
+                public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
+                    throw new \dml_read_exception('missing view');
+                }
+            };
+            $this->assertFalse(view::wait_for_replica('test', 1));
         } finally {
             $DB = $originaldb;
         }
