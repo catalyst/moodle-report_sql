@@ -56,8 +56,24 @@ class queries extends system_report {
             "{$alias}.id, {$alias}.status, {$alias}.reportid, {$alias}.chartreportid, {$alias}.ownerid, {$alias}.chartmeta"
         );
 
+        $this->add_columns_from_entities(["{$entityname}:name"]);
+
+        // Link to the live report, in its own column beside the name. Only published queries have one.
+        $this->add_column((new column('viewreport', new lang_string('runreport', 'report_sql'), $entityname))
+            ->set_type(column::TYPE_TEXT)
+            ->add_fields("{$alias}.reportid, {$alias}.status")
+            ->set_is_sortable(false)
+            ->add_callback(static function ($value, \stdClass $row): string {
+                if ($row->status !== query::STATUS_PUBLISHED || empty($row->reportid)) {
+                    return '';
+                }
+                return html_writer::link(
+                    new moodle_url('/reportbuilder/view.php', ['id' => $row->reportid]),
+                    get_string('runreport', 'report_sql')
+                );
+            }));
+
         $columns = [
-            "{$entityname}:name",
             "{$entityname}:owner",
             "{$entityname}:course",
             "{$entityname}:status",
