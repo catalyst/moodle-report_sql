@@ -26,22 +26,30 @@
  */
 
 require(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 use report_sql\local\query;
 use report_sql\local\usagestats;
 
 $id = required_param('id', PARAM_INT);
 
-require_login();
 $context = context_system::instance();
-require_capability('report/sql:viewall', $context);
+
+// The listing is the active parent for tabs and breadcrumb, giving: SQL Report > Usage > this report.
+// The usage node is gated by report/sql:viewall, as this page always was.
+navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
+admin_externalpage_setup(
+    'report_sql_usage',
+    '',
+    null,
+    new moodle_url('/report/sql/query_usage.php', ['id' => $id])
+);
 
 $q = query::get($id);
 $rec = $q->record();
 
-$PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/report/sql/query_usage.php', ['id' => $id]));
-$PAGE->set_pagelayout('admin');
+$PAGE->navbar->add(get_string('usage:title', 'report_sql'), new moodle_url('/report/sql/usage.php'));
+$PAGE->navbar->add(format_string($rec->name));
 $PAGE->set_title(get_string('usage:detailtitle', 'report_sql', format_string($rec->name)));
 $PAGE->set_heading(format_string($rec->name));
 

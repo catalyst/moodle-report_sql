@@ -18,13 +18,12 @@ declare(strict_types=1);
 
 namespace report_sql\reportbuilder\local\systemreports;
 
-use core_reportbuilder\local\report\action;
+use core_reportbuilder\local\report\column;
 use core_reportbuilder\system_report;
 use lang_string;
 use report_sql\local\query;
 use report_sql\reportbuilder\local\entities\query as query_entity;
 use moodle_url;
-use pix_icon;
 
 /**
  * System report showing how often each published report source has been opened.
@@ -39,7 +38,7 @@ use pix_icon;
  */
 class usage extends system_report {
     /**
-     * Initialise the report: main table, entity, columns, filters, action.
+     * Initialise the report: main table, entity, columns and filters.
      */
     protected function initialise(): void {
         $entity = new query_entity();
@@ -49,11 +48,36 @@ class usage extends system_report {
         $this->set_main_table('report_sql_query', $alias);
         $this->add_entity($entity);
 
-        // Consumed by the row actions below.
-        $this->add_base_fields("{$alias}.id, {$alias}.reportid");
+        $this->add_columns_from_entities(["{$entityname}:name"]);
+
+        // Link to the live report, in its own column beside the name.
+        $this->add_column((new column('viewreport', new lang_string('runreport', 'report_sql'), $entityname))
+            ->set_type(column::TYPE_TEXT)
+            ->add_field("{$alias}.reportid")
+            ->set_is_sortable(false)
+            ->add_callback(static function ($value): string {
+                if (empty($value)) {
+                    return '';
+                }
+                return \html_writer::link(
+                    new moodle_url('/reportbuilder/view.php', ['id' => $value]),
+                    get_string('runreport', 'report_sql')
+                );
+            }));
+
+        // Link to this source's usage detail (who / trend / recent), in its own column.
+        $this->add_column((new column('viewdetail', new lang_string('usage:detaillabel', 'report_sql'), $entityname))
+            ->set_type(column::TYPE_TEXT)
+            ->add_field("{$alias}.id")
+            ->set_is_sortable(false)
+            ->add_callback(static function ($value): string {
+                return \html_writer::link(
+                    new moodle_url('/report/sql/query_usage.php', ['id' => $value]),
+                    get_string('usage:detaillabel', 'report_sql')
+                );
+            }));
 
         $this->add_columns_from_entities([
-            "{$entityname}:name",
             "{$entityname}:owner",
             "{$entityname}:course",
             "{$entityname}:viewcount",
@@ -72,26 +96,6 @@ class usage extends system_report {
 
         // Only published queries have a report and can accrue views.
         $this->add_base_condition_simple("{$alias}.status", query::STATUS_PUBLISHED);
-
-        // Drill into this source's usage detail (who / trend / recent).
-        $this->add_action((new action(
-            new moodle_url('/report/sql/query_usage.php', ['id' => ':id']),
-            new pix_icon('i/stats', ''),
-            [],
-            false,
-            new lang_string('usage:detaillabel', 'report_sql')
-        )));
-
-        // Open the live report.
-        $this->add_action((new action(
-            new moodle_url('/reportbuilder/view.php', ['id' => ':reportid']),
-            new pix_icon('i/report', ''),
-            [],
-            false,
-            new lang_string('runreport', 'report_sql')
-        ))->add_callback(static function (\stdClass $row): bool {
-            return !empty($row->reportid);
-        }));
 
         // Default sort: busiest report sources first.
         $this->set_initial_sort_column("{$entityname}:viewcount", SORT_DESC);

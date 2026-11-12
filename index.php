@@ -72,13 +72,13 @@ $syscontext = context_system::instance();
 if (has_capability('report/sql:author', $syscontext)) {
     // Wrapped with a stable id so the user tour can anchor a step to the New report view button.
     $newbutton = html_writer::div(
-        $OUTPUT->single_button(
+        html_writer::link(
             new moodle_url(
                 '/report/sql/edit.php',
                 $courseid ? ['courseid' => $courseid] : []
             ),
-            get_string('addnew', 'report_sql'),
-            'get'
+            $OUTPUT->pix_icon('t/add', '', 'moodle', ['class' => 'me-1']) . get_string('addnew', 'report_sql'),
+            ['class' => 'btn btn-secondary']
         ),
         '',
         ['id' => 'rs-tour-newbutton']
@@ -123,7 +123,8 @@ $rendertransferbuttons = function () use ($OUTPUT, $syscontext) {
     if (has_capability('report/sql:viewall', $syscontext)) {
         $usagebutton = html_writer::link(
             new moodle_url('/report/sql/usage.php'),
-            get_string('usage:linklabel', 'report_sql'),
+            html_writer::tag('i', '', ['class' => 'fa fa-chart-line me-1', 'aria-hidden' => 'true']) .
+                get_string('usage:linklabel', 'report_sql'),
             ['class' => 'btn btn-secondary']
         );
     }

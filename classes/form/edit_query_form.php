@@ -128,29 +128,6 @@ class edit_query_form extends moodleform {
         );
 
         $this->add_audience_elements($mform);
-
-        // Authors get a plain Save (draft); approvers additionally get a one-click Save & publish so
-        // they don't have to round-trip through the index page to publish. The capability is also
-        // re-checked in edit.php before publishing — the button is convenience, not the gate.
-        $buttonarray = [];
-        $buttonarray[] = $mform->createElement('submit', 'submitbutton', get_string('savechanges'));
-        if (!empty($this->_customdata['canpublish'])) {
-            $buttonarray[] = $mform->createElement(
-                'submit',
-                'saveandpublish',
-                get_string('saveandpublish', 'report_sql')
-            );
-            // Publish but stay on the form to iterate (republish, configure the just-unlocked
-            // chart / filters) without round-tripping the index. edit.php redirects back here.
-            $buttonarray[] = $mform->createElement(
-                'submit',
-                'saveandpublishedit',
-                get_string('saveandpublishedit', 'report_sql')
-            );
-        }
-        $buttonarray[] = $mform->createElement('cancel');
-        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
-        $mform->closeHeaderBefore('buttonar');
     }
 
     /**
@@ -254,6 +231,16 @@ class edit_query_form extends moodleform {
      * Add chart configuration fields once column metadata is available (published queries only).
      */
     public function definition_after_data() {
+        parent::definition_after_data();
+        $this->add_late_sections();
+        // Added last so the buttons sit below the sections that depend on the saved record.
+        $this->add_action_buttons_group();
+    }
+
+    /**
+     * Add the chart / filter sections that depend on the saved record.
+     */
+    private function add_late_sections(): void {
         global $DB;
 
         $mform  = $this->_form;
@@ -480,5 +467,34 @@ class edit_query_form extends moodleform {
         }
 
         return $errors;
+    }
+
+    /**
+     * Add the save / publish / cancel buttons.
+     */
+    private function add_action_buttons_group(): void {
+        $mform = $this->_form;
+        // Authors get a plain Save (draft); approvers additionally get a one-click Save & publish so
+        // they don't have to round-trip through the index page to publish. The capability is also
+        // re-checked in edit.php before publishing — the button is convenience, not the gate.
+        $buttonarray = [];
+        $buttonarray[] = $mform->createElement('submit', 'submitbutton', get_string('savechanges'));
+        if (!empty($this->_customdata['canpublish'])) {
+            $buttonarray[] = $mform->createElement(
+                'submit',
+                'saveandpublish',
+                get_string('saveandpublish', 'report_sql')
+            );
+            // Publish but stay on the form to iterate (republish, configure the just-unlocked
+            // chart / filters) without round-tripping the index. edit.php redirects back here.
+            $buttonarray[] = $mform->createElement(
+                'submit',
+                'saveandpublishedit',
+                get_string('saveandpublishedit', 'report_sql')
+            );
+        }
+        $buttonarray[] = $mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
+        $mform->closeHeaderBefore('buttonar');
     }
 }
