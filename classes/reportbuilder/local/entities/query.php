@@ -113,13 +113,22 @@ class query extends base {
         $columns[] = (new column('name', new lang_string('name', 'report_sql'), $this->get_entity_name()))
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
-            ->add_fields("{$q}.name, {$q}.chartmeta, {$q}.querysql")
+            ->add_fields("{$q}.name, {$q}.id, {$q}.ownerid, {$q}.chartmeta, {$q}.querysql")
             ->set_is_sortable(true, ["{$q}.name"])
             ->add_callback(static function ($value, \stdClass $row): string {
                 if ($value === null) {
                     return '';
                 }
                 $name = format_string($value);
+
+                // Link to the edit page for users who may edit (admin-owned queries are locked to admins).
+                global $USER;
+                if (
+                    has_capability('report/sql:author', \context_system::instance())
+                    && (!is_siteadmin($row->ownerid) || is_siteadmin($USER))
+                ) {
+                    $name = html_writer::link(new \moodle_url('/report/sql/edit.php', ['id' => $row->id]), $name);
+                }
 
                 // Cap the column width (main used a 33% html_table size); long names wrap within it.
                 $wrap = static fn(string $html): string => \html_writer::span($html, 'rs-query-name');
