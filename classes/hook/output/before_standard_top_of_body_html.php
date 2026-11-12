@@ -44,7 +44,7 @@ class before_standard_top_of_body_html {
 
         // Only on the Report Builder custom-reports index, and only for authors.
         if (
-            $PAGE->url === null ||
+            !$PAGE->has_set_url() ||
             !$PAGE->url->compare(new \moodle_url('/reportbuilder/index.php'), URL_MATCH_BASE)
         ) {
             return;
