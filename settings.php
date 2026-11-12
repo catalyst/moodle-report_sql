@@ -39,6 +39,16 @@ if (\report_sql\local\query::is_plugin_enabled()) {
         'report/sql:author',
         false
     ));
+
+    // User documentation, listed beside the index. docs.php sets the index page as the active parent
+    // for navigation and breadcrumb.
+    $ADMIN->add($indexparent, new admin_externalpage(
+        'report_sql_docs',
+        get_string('userdocs', 'report_sql'),
+        new moodle_url('/report/sql/docs.php'),
+        'report/sql:author',
+        false
+    ));
 }
 
 // Usage overview (read-only, viewall-gated). Registered outside the $hassiteconfig guard for the

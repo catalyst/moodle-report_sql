@@ -24,14 +24,16 @@
 
 require(__DIR__ . '/../../config.php');
 
-require_login();
-$context = context_system::instance();
-// Only authors (people who can create report views) get the docs page.
-require_capability('report/sql:author', $context);
+require_once($CFG->libdir . '/adminlib.php');
 
-$PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/report/sql/docs.php'));
-$PAGE->set_pagelayout('admin');
+$context = context_system::instance();
+
+// Registered in the admin tree (settings.php) gated by report/sql:author, so only authors get the page
+// and the primary/secondary navigation and breadcrumb are set.
+// The listing is the active parent, so tabs and the breadcrumb trail run through index.php.
+navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
+admin_externalpage_setup('report_sql_docs', '', null, new moodle_url('/report/sql/docs.php'));
+$PAGE->navbar->add(get_string('userdocs', 'report_sql'));
 $PAGE->set_title(get_string('userdocs', 'report_sql'));
 $PAGE->set_heading(get_string('reportsources', 'report_sql'));
 
