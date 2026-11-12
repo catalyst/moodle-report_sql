@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Import SQL reports from the Ad-hoc Database Queries report as draft report sources.
+ * Import SQL reports from the Ad-hoc Database Queries report as draft SQL data sources.
  *
  * Lists every report_customsql_queries row split into importable (translates cleanly through
  * {@see \report_sql\local\customsql_import}) and rejected (with a reason). The admin ticks

@@ -19,7 +19,7 @@ declare(strict_types=1);
 namespace report_sql\local\sql;
 
 /**
- * Gives an author feedback on a report source: date-like columns that should use
+ * Gives an author feedback on a SQL data source: date-like columns that should use
  * the %%TIMESTAMP()%% token, the result row count, and per-table index / full-scan
  * information so an excessively slow report can be spotted before publishing.
  *
@@ -53,7 +53,7 @@ class analyser {
     private const PROBE_TIMEOUT_MS = 5000;
 
     /**
-     * Analyse a report source and return structured feedback.
+     * Analyse a SQL data source and return structured feedback.
      *
      * @param string $sql Raw author SQL.
      * @param int $courseid Bound course id (0 = site-wide) for placeholder resolution.

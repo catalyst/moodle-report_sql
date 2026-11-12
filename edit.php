@@ -88,7 +88,7 @@ if ($id) {
     }
 }
 
-// Breadcrumb leaf: the query name when editing, else "New SQL report". The title mirrors it so the
+// Breadcrumb leaf: the query name when editing, else "New SQL data source". The title mirrors it so the
 // browser tab and trail agree.
 $leaf = $existing ? format_string($existing->name) : get_string('addnew', 'report_sql');
 $PAGE->navbar->add($leaf);

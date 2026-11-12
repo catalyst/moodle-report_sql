@@ -30,7 +30,7 @@ use moodle_url;
 use pix_icon;
 
 /**
- * System report listing saved ad-hoc queries (report sources), with paging, sorting and filtering.
+ * System report listing saved ad-hoc queries (SQL data sources), with paging, sorting and filtering.
  *
  * Row visibility mirrors {@see query::visible_to_current_user()} via a SQL base condition, so the
  * report never surfaces a query the current user is not entitled to see on the plugin's own pages.

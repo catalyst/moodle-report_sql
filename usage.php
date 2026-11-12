@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Report-usage overview: how often each published report source has been opened.
+ * Report-usage overview: how often each published SQL data source has been opened.
  *
  * Rendered as a Report Builder system report (search / sort / filter / export), sourced from the
  * report_sql_queryview audit table. Gated on the viewall capability because view history

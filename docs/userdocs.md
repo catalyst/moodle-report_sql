@@ -8,7 +8,7 @@ SQL Report (`report_sql`) lets you write a SQL `SELECT` query, click **Publish**
 
 ![The Saved report views list with a row's actions menu open](images/report-views-list.png)
 
-Everything starts from the **Saved SQL reports** list (*Site admin → Reports → SQL Reports*). Each row shows the view's name, owner, status (**Draft** or **Published**) and when it was last changed. A published row offers **Open report**, **Edit**, **Edit in Report Builder** and **Unpublish**; the **⋮** menu adds **Schedule emails**, **New report from this view**, **Duplicate** and **Delete**. Draft rows only offer **Edit** until you publish them. See [Managing report views](#managing-report-views-list-page) for the full workflow.
+Everything starts from the **Saved SQL data sources** list (*Site admin → Reports → SQL Reports*). Each row shows the view's name, owner, status (**Draft** or **Published**) and when it was last changed. A published row offers **Open report**, **Edit**, **Edit in Report Builder** and **Unpublish**; the **⋮** menu adds **Schedule emails**, **New report from this view**, **Duplicate** and **Delete**. Draft rows only offer **Edit** until you publish them. See [Managing report views](#managing-report-views-list-page) for the full workflow.
 
 ---
 
@@ -850,7 +850,7 @@ Each page shows every source report, translates its SQL automatically, and marks
 
 The plugin ships a set of ready-made sample report views you can load and adapt. They use only the portable [tokens](#placeholders), so they import and publish on both MySQL/MariaDB and PostgreSQL.
 
-- **Browse and import** — the *Site admin → Reports → SQL Reports → Load sample SQL reports* page is a bulk picker: tick the samples you want and import them at once; a sample whose name already exists is disabled to avoid duplicates. The **Load sample SQL report** button on the SQL Reports list page is the one-at-a-time version (imported with a `Sample:` name prefix so it never collides). Either way each lands as a **draft owned by you** that you publish before use.
+- **Browse and import** — the *Site admin → Reports → SQL Reports → Load sample SQL data sources* page is a bulk picker: tick the samples you want and import them at once; a sample whose name already exists is disabled to avoid duplicates. The **Load sample SQL data source** button on the SQL data sources list page is the one-at-a-time version (imported with a `Sample:` name prefix so it never collides). Either way each lands as a **draft owned by you** that you publish before use.
 - **Post-install** — a notification after install links straight to the same picker.
 - **CLI** — `php report/sql/cli/import.php` bulk-imports a JSON file of report views (defaults to `report_sql.json` in the current directory).
 
@@ -891,7 +891,7 @@ Common messages:
 | Sensitive column denylist | `password`, `secret`, `sesskey`, `token`, `accesstoken`, `refreshtoken`, `sharekey`, `salt`, `hash`, `signature`, `privatekey`, … | Comma-separated column names stripped from every introspected result (stored without spaces; see the settings page for the full default) |
 | Table denylist | Built-in protected tables (`config`, `sessions`, token, password-history and similar) | Comma / space / newline separated table names that may never be queried. Fully editable — removing an entry allows that table, so edit with care |
 | SQL syntax highlight and autocomplete | On | CodeMirror 6 editor with keyword/table/column autocomplete from the live database |
-| Show last modified column | On | Show a sortable **Last modified** column in the report sources list |
+| Show last modified column | On | Show a sortable **Last modified** column in the SQL data sources list |
 | Show table braces in editor | Off | Show Moodle `{table}` braces around table names in the SQL editor. Off = tables shown brace-free (braces still added automatically on save). Purely a display preference |
 | Dropdown filter threshold | `30` | A text column with this many distinct values or fewer (measured at publish) gets a dropdown filter instead of free-text. `0` disables (all text columns stay free-text) |
 | Dropdown filter row ceiling | `100000` | Skip dropdown-filter detection when a published view has more rows than this, so a large report avoids a per-column distinct scan at publish (its text columns stay free-text). `0` = always probe. Only relevant when the threshold above is non-zero |

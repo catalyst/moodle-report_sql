@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['actions'] = 'Actions';
-$string['addnew'] = 'New SQL report';
+$string['addnew'] = 'New SQL data source';
 $string['createfeaturesnote'] = '"Publish and continue editing" to unlock more options — charts and per-user and per-course filters — which need the published report\'s columns to configure.';
 $string['ai:copied'] = 'Copied';
 $string['ai:copy'] = 'Copy';
@@ -51,8 +51,8 @@ $string['ai:placeholder'] = 'e.g. Show all students enrolled in more than 3 cour
 $string['ai:prompt'] = 'Prompt sent to the LLM';
 $string['ai:question'] = 'Describe the data you want';
 $string['ai:sqldescription'] = 'Selects {$a->columns} from {$a->tables}.';
-$string['ai:sqldescriptionnocols'] = 'Report over {$a}.';
-$string['ai:sqlname'] = '{$a} report';
+$string['ai:sqldescriptionnocols'] = 'Data source over {$a}.';
+$string['ai:sqlname'] = '{$a} data source';
 $string['audienceallusers'] = 'All site users';
 $string['audiencecohort'] = 'Members of cohorts';
 $string['audiencecohorts'] = 'Cohorts';
@@ -94,7 +94,7 @@ $string['errdropcachetable'] = 'Could not drop cache table: {$a}';
 $string['errrefreshcache'] = 'Could not refresh cache table: {$a}';
 $string['refreshcachenow'] = 'Refresh cache now';
 $string['refreshcachequeued'] = 'Cache refresh queued.';
-$string['task:scanduerefreshes'] = 'Queue due cache refreshes for cached-mode SQL reports';
+$string['task:scanduerefreshes'] = 'Queue due cache refreshes for cached-mode SQL data sources';
 $string['chartbar'] = 'Bar chart';
 $string['chartcolumn'] = 'Chart';
 $string['chartdatalabels'] = 'Show value labels';
@@ -153,44 +153,44 @@ $string['checkrowcounttimeout'] = 'Row count timed out after {$a}s — the query
 $string['checkselectsubquery'] = 'A subquery in the SELECT list is evaluated once per returned row, multiplying work on a large result. A JOIN or a WITH (CTE) is usually faster.';
 $string['checksortindex'] = 'The report sorts by {$a->sortcol}, which is not indexed, so the database orders the whole result. Sorting by an indexed column is faster — indexed columns available: {$a->indexed}.';
 $string['compiledsql'] = 'Compiled SQL (what actually ran)';
-$string['confirmdeletemany'] = 'Are you sure you want to delete these {$a} report source(s)? This drops each backing view and report and cannot be undone.';
+$string['confirmdeletemany'] = 'Are you sure you want to delete these {$a} SQL data source(s)? This drops each backing view and report and cannot be undone.';
 $string['convertaliasspaces'] = 'Replace spaces in the column alias with underscores automatically';
 $string['convertquestionmark'] = 'Convert ? inside quotes to CHAR(63) automatically';
 $string['copyof'] = 'Copy of {$a}';
-$string['copysuccess'] = 'Report source copied. You are now editing the copy.';
+$string['copysuccess'] = 'SQL data source copied. You are now editing the copy.';
 $string['coursecolumn'] = 'Restrict to courses the viewer teaches';
 $string['coursecolumn_help'] = 'Optionally scope this report so each viewer sees only rows for courses they teach. Pick the output column holding a course id; at view time the report shows only rows where that column is one of the courses where the viewer has an editing teacher or teacher role.
 
 A viewer who teaches no courses sees no rows. This lets you publish a single report to a wide audience (for example all staff) while each teacher still sees only their own courses. Leave as "Choose a column…" for no teacher-course filter.';
 $string['coursescope'] = 'Course scope';
-$string['coursescope_help'] = 'The course this report belongs to. Leave empty for a site-wide report.
+$string['coursescope_help'] = 'The course this SQL data source belongs to. Leave empty for a site-wide data source.
 
-The course determines two things when the report is published: the context its "View report" permission is checked in, and its default audience (course participants for a course-scoped report, all users for a site-wide one).
+The course determines two things when the data source is published: the context the "View report" permission is checked in for its reports, and their default audience (course participants for a course-scoped data source, all users for a site-wide one).
 
 Change this to re-scope a query — for example an imported draft that was set site-wide because its original course did not exist on this site. You can only choose courses you are allowed to view reports in.';
 $string['createrole:aigenerate'] = 'Include "AI SQL generation"';
 $string['createrole:aigenerate_desc'] = 'Also grant local/sqlchat:use, so holders can use the AI question box to generate SQL. Only shown when the local_sqlchat plugin is installed. Leave unticked if authors should write SQL themselves.';
 $string['createrole:approve'] = 'Include "Approve and publish"';
-$string['createrole:approve_desc'] = 'Also grant report/sql:approve, so holders can publish and unpublish report sources themselves. Leave unticked if a separate approver should publish their drafts.';
-$string['createrole:author'] = 'Author report sources';
-$string['createrole:author_desc'] = 'Always included: report/sql:author lets holders write and save report sources (the purpose of the role). Also always granted are moodle/reportbuilder:view, moodle/reportbuilder:viewall and moodle/reportbuilder:editall, so holders can open and edit any published report at /reportbuilder/view.php regardless of its audience or owner.';
+$string['createrole:approve_desc'] = 'Also grant report/sql:approve, so holders can publish and unpublish SQL data sources themselves. Leave unticked if a separate approver should publish their drafts.';
+$string['createrole:author'] = 'Author SQL data sources';
+$string['createrole:author_desc'] = 'Always included: report/sql:author lets holders write and save SQL data sources (the purpose of the role). Also always granted are moodle/reportbuilder:view, moodle/reportbuilder:viewall and moodle/reportbuilder:editall, so holders can open and edit any published report at /reportbuilder/view.php regardless of its audience or owner.';
 $string['createrole:create'] = 'Create role';
 $string['createrole:done'] = 'The "Report author" role was created. Assign people to it below.';
 $string['createrole:exists'] = 'A "Report author" role already exists. Submitting this form will update its capabilities to match your selection below.';
-$string['createrole:intro'] = 'This creates a system-level role bundling the report-source capabilities, so you can let trusted non-administrators author reports without making them full site managers. Choose which capabilities to include, then create the role and assign people to it.';
+$string['createrole:intro'] = 'This creates a system-level role bundling the SQL data source capabilities, so you can let trusted non-administrators author SQL data sources without making them full site managers. Choose which capabilities to include, then create the role and assign people to it.';
 $string['createrole:linklabel'] = 'Create the "Report author" role';
 $string['createrole:title'] = 'Create the "Report author" role';
 $string['createrole:updated'] = 'The "Report author" role capabilities were updated. Assign people to it below.';
-$string['createrole:viewall'] = 'Include "View all report sources"';
-$string['createrole:viewall_desc'] = 'Also grant report/sql:viewall, so holders can see and manage everyone\'s report sources, not only their own.';
-$string['createrole:warning'] = 'Authoring a report means writing an arbitrary SQL SELECT, which can read almost any table in the database (only a small denylist such as config, sessions and password tables is blocked). This role is therefore effectively a site-wide data-read grant. Assign it only to people you would trust with direct read access to the database, and confirm any sensitive columns are covered by the column denylist in the plugin settings.';
+$string['createrole:viewall'] = 'Include "View all SQL data sources"';
+$string['createrole:viewall_desc'] = 'Also grant report/sql:viewall, so holders can see and manage everyone\'s SQL data sources, not only their own.';
+$string['createrole:warning'] = 'Authoring a SQL data source means writing an arbitrary SQL SELECT, which can read almost any table in the database (only a small denylist such as config, sessions and password tables is blocked). This role is therefore effectively a site-wide data-read grant. Assign it only to people you would trust with direct read access to the database, and confirm any sensitive columns are covered by the column denylist in the plugin settings.';
 $string['crimport:colname'] = 'Report';
 $string['crimport:colnotes'] = 'Changes applied';
 $string['crimport:colreason'] = 'Reason';
 $string['crimport:coltype'] = 'Type';
 $string['crimport:importableheading'] = 'Importable reports';
 $string['crimport:importselected'] = 'Import selected';
-$string['crimport:intro'] = 'These are the SQL reports found in the Configurable Reports block. Importable reports translate cleanly and will be created as drafts owned by you, ready to publish. Rejected reports use features that cannot be converted automatically — port those by hand.';
+$string['crimport:intro'] = 'These are the SQL reports found in the Configurable Reports block. Importable reports translate cleanly and will be created as draft SQL data sources owned by you, ready to publish. Rejected reports use features that cannot be converted automatically — port those by hand.';
 $string['crimport:linklabel'] = 'Import from Configurable Reports';
 $string['crimport:noneimportable'] = 'No Configurable Reports SQL reports could be translated automatically. See the rejected list below for why.';
 $string['crimport:noneselected'] = 'No reports were selected.';
@@ -208,35 +208,35 @@ $string['crimport:reasontoken'] = 'Uses an unsupported token {$a}';
 $string['crimport:reasonuserid'] = 'Uses {$a}; use the "Restrict to viewing user" setting on the imported draft instead';
 $string['crimport:rejectedheading'] = 'Rejected reports';
 $string['crimport:title'] = 'Import from Configurable Reports';
-$string['crimport:title_help'] = 'Imports the SQL reports stored in the Configurable Reports block (block_configurable_reports) as draft report sources.
+$string['crimport:title_help'] = 'Imports the SQL reports stored in the Configurable Reports block (block_configurable_reports) as draft SQL data sources.
 
 Each report is decoded and run through a fixed translation: MySQL date functions become portable %%TIMESTAMP%% / %%EPOCH%% / %%NOW%% tokens, double-quoted strings become single-quoted, and a literal ? in a string is rebuilt with chr(63). Reports using features that cannot be converted (such as %%USERID%% or interactive %%FILTER%% tokens) are listed as rejected with a reason.
 
-Imported reports land as drafts owned by you and must be published before they go live. No AI is used — every conversion is a fixed rule.';
+Imported reports land as draft SQL data sources owned by you and must be published before they go live. No AI is used — every conversion is a fixed rule.';
 $string['crimport:unavailable'] = 'The Configurable Reports block (block_configurable_reports) is not installed, so there is nothing to import.';
 $string['customisecolumns'] = 'Customise report';
-$string['customsqlimport:intro'] = 'These are the queries found in the Ad-hoc Database Queries report (report_customsql). Importable queries translate cleanly and will be created as drafts owned by you, ready to publish. Rejected queries use features that cannot be converted automatically — port those by hand.';
+$string['customsqlimport:intro'] = 'These are the queries found in the Ad-hoc Database Queries report (report_customsql). Importable queries translate cleanly and will be created as draft SQL data sources owned by you, ready to publish. Rejected queries use features that cannot be converted automatically — port those by hand.';
 $string['customsqlimport:linklabel'] = 'Import from Ad-hoc Database Queries';
 $string['customsqlimport:noneimportable'] = 'No Ad-hoc Database Queries could be translated automatically. See the rejected list below for why.';
 $string['customsqlimport:noteescape'] = 'Substituted customsql escape token(s) (%%Q%% / %%C%% / %%S%%) with their literal characters';
 $string['customsqlimport:reasonparam'] = 'Uses the interactive named parameter {$a}; rebuild this as a Report Builder filter after importing';
 $string['customsqlimport:title'] = 'Import from Ad-hoc Database Queries';
-$string['customsqlimport:title_help'] = 'Imports the queries stored in the Ad-hoc Database Queries report (report_customsql) as draft report sources.
+$string['customsqlimport:title_help'] = 'Imports the queries stored in the Ad-hoc Database Queries report (report_customsql) as draft SQL data sources.
 
 Each query is run through a fixed translation: MySQL date functions become portable %%TIMESTAMP%% / %%EPOCH%% / %%NOW%% tokens, double-quoted strings become single-quoted, customsql escape tokens (%%Q%% / %%C%% / %%S%%) become their literal characters, and a literal ? in a string is rebuilt with chr(63). Queries using features that cannot be converted (such as %%USERID%% or interactive :named parameters) are listed as rejected with a reason.
 
-Imported queries land as drafts owned by you and must be published before they go live. customsql has no per-course scope, so every draft starts site-wide. No AI is used — every conversion is a fixed rule.';
+Imported queries land as draft SQL data sources owned by you and must be published before they go live. customsql has no per-course scope, so every draft starts site-wide. No AI is used — every conversion is a fixed rule.';
 $string['customsqlimport:unavailable'] = 'The Ad-hoc Database Queries report (report_customsql) is not installed, so there is nothing to import.';
 $string['delete'] = 'Delete';
 $string['deleteselected'] = 'Delete selected';
-$string['deleteselecthelp'] = 'Tick the report sources to delete. Deleting drops each backing database view and report and cannot be undone.';
+$string['deleteselecthelp'] = 'Tick the SQL data sources to delete. Deleting drops each backing database view and report and cannot be undone.';
 $string['description'] = 'Description';
 $string['duplicate'] = 'Duplicate';
 $string['edit'] = 'Edit';
 $string['editreport'] = 'Edit in report builder';
 $string['embedcodecopied'] = 'Embed code copied';
 $string['embedcodecopy'] = 'Copy embed code';
-$string['entityquery'] = 'Report source';
+$string['entityquery'] = 'SQL data source';
 $string['erraliasspaces'] = 'The column alias "{$a}" contains spaces. Column aliases in SQL Report cannot have spaces — use an underscore or camel case instead, e.g. SELECT firstname AS first_name FROM user. You can rename the column with a space after publishing, using Report Builder.';
 $string['erraudiencecohortsempty'] = 'Choose at least one cohort.';
 $string['erraudiencecourse'] = 'This audience applies to a course. Choose a course scope above before selecting it.';
@@ -246,43 +246,43 @@ $string['errchartnotconfigured'] = 'No chart is configured for this query. Edit 
 $string['errchartnotpublished'] = 'This query is not published. Publish it first before viewing the chart.';
 $string['errreplicalag'] = 'The preview view is not yet available on the read-only database replica. Please try again in a moment.';
 $string['errcolumnnoalias'] = 'The column "{$a}" is an expression with no name. Give every calculated or aggregate column an alias, e.g. SELECT count(*) AS total FROM course.';
-$string['errcourseidplaceholder'] = 'The SQL uses %%COURSEID%%, so this report needs a fixed course scope. Choose a course above before saving — or, to show each course its own data in a block, remove the %%COURSEID%% filter from the SQL, output the course id column, and set "Restrict to the course the block is on" instead.';
+$string['errcourseidplaceholder'] = 'The SQL uses %%COURSEID%%, so this SQL data source needs a fixed course scope. Choose a course above before saving — or, to show each course its own data in a block, remove the %%COURSEID%% filter from the SQL, output the course id column, and set "Restrict to the course the block is on" instead.';
 $string['errcreateview'] = '{$a}';
 $string['errdeniedcolumn'] = 'Disallowed column: {$a}';
 $string['errdeniedkeyword'] = 'Disallowed keyword: {$a}';
-$string['errmysqlexecutablecomment'] = 'Executable SQL comments (/*! ... */ and /*M! ... */) are not allowed in reports. Write the SQL explicitly so it can be validated.';
+$string['errmysqlexecutablecomment'] = 'Executable SQL comments (/*! ... */ and /*M! ... */) are not allowed in SQL data sources. Write the SQL explicitly so it can be validated.';
 $string['errdeniedfunction'] = 'Disallowed function: {$a}. Functions that execute SQL strings, read server files or export tables, schemas, databases or cursors bypass report access checks.';
 $string['errdeniedtable'] = 'Disallowed table: {$a}';
 $string['errdropview'] = 'Could not drop database view: {$a}';
 $string['errduplicatecolumn'] = 'Joined tables share duplicate column names (e.g. both have "id"). Replace SELECT * with explicit column aliases: SELECT u.id AS userid, fp.id AS postid, ...';
-$string['errimportempty'] = 'The export file contains no report sources.';
+$string['errimportempty'] = 'The export file contains no SQL data sources.';
 $string['errimportformat'] = 'This file is not a valid SQL Report export.';
 $string['errjoinnoon'] = 'A JOIN is missing its ON (or USING) condition. Each JOIN needs a join condition, e.g. JOIN {user_enrolments} ue ON ue.userid = u.id';
 $string['errmultistatement'] = 'Multiple statements are not allowed.';
-$string['errnodeleteselection'] = 'Select at least one report source to delete.';
-$string['errnoexportselection'] = 'Select at least one report source to export.';
-$string['errnoimportselection'] = 'Select at least one report source to import.';
+$string['errnodeleteselection'] = 'Select at least one SQL data source to delete.';
+$string['errnoexportselection'] = 'Select at least one SQL data source to export.';
+$string['errnoimportselection'] = 'Select at least one SQL data source to import.';
 $string['errnotselect'] = 'Only SELECT queries are allowed.';
-$string['errpagecourseambiguous'] = 'A report may carry only one %%PAGECOURSE(expr)%% token, and its expression must resolve to a named output column. Use a single %%PAGECOURSE()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... FROM {course} c.';
+$string['errpagecourseambiguous'] = 'A SQL data source may carry only one %%PAGECOURSE(expr)%% token, and its expression must resolve to a named output column. Use a single %%PAGECOURSE()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... FROM {course} c.';
 $string['errpagecourseunresolved'] = 'The %%PAGECOURSE()%% token could not be matched to an output column named "{$a}". Give the marked column an explicit alias so it becomes a named view column, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... — publishing was stopped rather than leave the page-course filter unapplied.';
 $string['errparse'] = 'The SQL could not be parsed: {$a}';
 $string['errpgsqldatefn'] = 'PostgreSQL-only function {$a} is not supported by MySQL. Use a cross-database equivalent.';
 $string['errplaceholder'] = 'The SQL contains an unfilled placeholder "{$a}". Replace it with a real value before saving — e.g. change "l.userid = ##" to "l.userid = 2".';
 $string['errplaceholderuserid'] = 'The SQL contains "{$a}", which is not a supported placeholder. There is no per-viewer placeholder because the report runs from a fixed database view. To restrict the report to the rows for whoever opens it, either wrap the user-id column in the SQL with %%VIEWER(...)%% — e.g. SELECT %%VIEWER(u.id)%% AS viewerid, ... — or remove "{$a}" and select the user-id column in the "Restrict to viewing user" field at the end of this form. Either way the per-user filter is applied automatically at run time.';
-$string['errqualifiedtable'] = 'Schema-qualified table reference "{$a}" is not allowed. Reports may only read the site\'s own tables using Moodle\'s {tablename} syntax; cross-schema or cross-database references (e.g. information_schema.columns) are blocked.';
+$string['errqualifiedtable'] = 'Schema-qualified table reference "{$a}" is not allowed. SQL data sources may only read the site\'s own tables using Moodle\'s {tablename} syntax; cross-schema or cross-database references (e.g. information_schema.columns) are blocked.';
 $string['errquestionmark'] = 'SQL contains a ? character, which the database layer treats as a query parameter placeholder. If ? appears inside a URL string, replace it with CHAR(63) — e.g. CONCAT(\'…/view.php\', CHAR(63), \'id=\', course.id).';
-$string['errteachesambiguous'] = 'A report may carry only one %%TEACHES(expr)%% token, and its expression must resolve to a named output column. Use a single %%TEACHES()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%TEACHES(c.id)%% AS courseid, ... FROM {course} c.';
+$string['errteachesambiguous'] = 'A SQL data source may carry only one %%TEACHES(expr)%% token, and its expression must resolve to a named output column. Use a single %%TEACHES()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%TEACHES(c.id)%% AS courseid, ... FROM {course} c.';
 $string['errteachesunresolved'] = 'The %%TEACHES()%% token could not be matched to an output column named "{$a}". Give the marked column an explicit alias so it becomes a named view column, e.g. SELECT %%TEACHES(c.id)%% AS courseid, ... — publishing was stopped rather than leave the teacher-course filter unapplied.';
-$string['errviewerambiguous'] = 'A report may carry only one %%VIEWER(expr)%% token, and its expression must resolve to a named output column. Use a single %%VIEWER()%% marking the column that holds the user id, and give it an alias, e.g. SELECT %%VIEWER(fp.userid)%% AS viewerid, fp.subject FROM {forum_posts} fp.';
+$string['errviewerambiguous'] = 'A SQL data source may carry only one %%VIEWER(expr)%% token, and its expression must resolve to a named output column. Use a single %%VIEWER()%% marking the column that holds the user id, and give it an alias, e.g. SELECT %%VIEWER(fp.userid)%% AS viewerid, fp.subject FROM {forum_posts} fp.';
 $string['errviewerunresolved'] = 'The %%VIEWER()%% token could not be matched to an output column named "{$a}". Give the marked column an explicit alias so it becomes a named view column, e.g. SELECT %%VIEWER(u.id)%% AS viewerid, ... — publishing was stopped rather than leave the report unscoped (which would show every viewer all rows).';
-$string['event:querycreated'] = 'Ad-hoc query created';
-$string['event:querydeleted'] = 'Ad-hoc query deleted';
-$string['event:querypublished'] = 'Ad-hoc query published';
-$string['event:queryunpublished'] = 'Ad-hoc query unpublished';
-$string['event:queryupdated'] = 'Ad-hoc query updated';
+$string['event:querycreated'] = 'SQL data source created';
+$string['event:querydeleted'] = 'SQL data source deleted';
+$string['event:querypublished'] = 'SQL data source published';
+$string['event:queryunpublished'] = 'SQL data source unpublished';
+$string['event:queryupdated'] = 'SQL data source updated';
 $string['export'] = 'Export';
 $string['exportselected'] = 'Export selected';
-$string['exportselecthelp'] = 'Tick the report sources to include in the export file, then download the JSON.';
+$string['exportselecthelp'] = 'Tick the SQL data sources to include in the export file, then download the JSON.';
 $string['filterpublishrequired'] = 'To configure the per-user and per-course filters, click Publish and continue editing.';
 $string['copysql'] = 'Copy SQL';
 $string['copysqldone'] = 'SQL copied to clipboard';
@@ -295,17 +295,17 @@ $string['formatsql'] = 'Format SQL';
 $string['formatsqltooltip'] = 'Reformat SQL to standard layout (Shift+Ctrl+F)';
 $string['import'] = 'Import';
 $string['importdemoted'] = 'Set to site-wide because their course was not found on this site. Edit each draft and set its Course scope before publishing: {$a}.';
-$string['importdone'] = 'Imported {$a} report source(s) as drafts.';
-$string['importallhidden'] = 'Nothing can be imported: every report source in this file needs a plugin that is not installed here: {$a}.';
+$string['importdone'] = 'Imported {$a} SQL data source(s) as drafts.';
+$string['importallhidden'] = 'Nothing can be imported: every SQL data source in this file needs a plugin that is not installed here: {$a}.';
 $string['importfile'] = 'Export file';
 $string['importhidden'] = 'Hidden (a required plugin is not installed here): {$a}.';
 $string['importselected'] = 'Import selected';
-$string['importselecthelp'] = 'Tick the report sources to import. Each is created as a new draft owned by you and must be published before use.';
+$string['importselecthelp'] = 'Tick the SQL data sources to import. Each is created as a new draft owned by you and must be published before use.';
 $string['importskipped'] = 'Skipped (failed SQL validation): {$a}.';
 $string['importupload'] = 'Upload and choose';
-$string['importuploadhelp'] = 'Upload a JSON file previously produced by the Export action. You will then choose which report sources to import.';
-$string['install:createrole'] = 'Optionally create a "Report author" role so non-administrators can author reports. Review the security implications first: {$a}';
-$string['install:loadsamples'] = 'SQL Report ships sample SQL reports you can load to get started: {$a}';
+$string['importuploadhelp'] = 'Upload a JSON file previously produced by the Export action. You will then choose which SQL data sources to import.';
+$string['install:createrole'] = 'Optionally create a "Report author" role so non-administrators can author SQL data sources. Review the security implications first: {$a}';
+$string['install:loadsamples'] = 'SQL Report ships sample SQL data sources you can load to get started: {$a}';
 $string['install:privilegefail'] = 'SQL Report installed, but the database user cannot create or drop views. Publishing queries will fail until the grants are fixed. Error: {$a}';
 $string['install:privilegeok'] = 'SQL Report: the database user can create and drop views.';
 $string['lastmodified'] = 'Last modified';
@@ -316,7 +316,8 @@ $string['linkhelpargs'] = 'Arguments';
 $string['linkhelpintro'] = 'Render a cell as a link: <code>%%LINK(expr, \'path\')%%</code> or <code>%%LINK(expr, keycol, \'path\')%%</code>.';
 $string['linkhelptitle'] = 'Link token';
 $string['name'] = 'Name';
-$string['noqueries'] = 'No report sources yet.';
+$string['sourcename'] = 'SQL data source';
+$string['noqueries'] = 'No SQL data sources yet.';
 $string['norows'] = 'No data to display.';
 $string['owner'] = 'Owner';
 $string['pagecoursecolumn'] = 'Restrict to the course the block is on';
@@ -324,28 +325,28 @@ $string['pagecoursecolumn_help'] = 'Applies only when this report is shown throu
 
 Off a course page (Dashboard or the site front page) no page-course filter is applied. The standalone report viewer also ignores this, since it has no "current course". Leave as "Choose a column…" for no page-course filter.';
 $string['plugindisabled'] = 'SQL Report is currently disabled by the site administrator.';
-$string['pluginexplained'] = 'About report sources';
-$string['pluginexplained_help'] = 'This plugin lets you write a SQL SELECT query and publish it as a fully-configurable Report Builder report — no PHP required.
+$string['pluginexplained'] = 'About SQL data sources';
+$string['pluginexplained_help'] = 'This plugin lets you write a SQL SELECT query as a SQL data source and publish it as a fully-configurable Report Builder report — no PHP required.
 
-When you publish a query, the plugin creates a database VIEW from your SQL, reads its columns, and registers a Report Builder datasource pointing at that view. You can then build, filter and share the report like any other Report Builder report.
+When you publish a SQL data source, the plugin creates a database VIEW from your SQL, reads its columns, and registers a Report Builder data source pointing at that view. You can then build, filter and share the resulting report like any other Report Builder report.
 
-Only SELECT queries are allowed, and a denylist blocks access to sensitive tables. Editing the SQL of a published query rebuilds the view and report on the next publish.';
+Only SELECT queries are allowed, and a denylist blocks access to sensitive tables. Editing the SQL of a published SQL data source rebuilds the view and report on the next publish.';
 $string['pluginname'] = 'SQL Report';
 $string['preview'] = 'Preview first 5 rows';
 $string['preview_help'] = 'Renders your current SQL as a real Report Builder report, inline and without saving or publishing. Columns are typed and formatted exactly as they would be on publish, so this is a quick way to see what the report will look like. Only the first 5 rows are shown.';
 $string['previewheading'] = 'Preview result';
 $string['previewloading'] = 'Building preview…';
-$string['privacy:metadata:query'] = 'Saved report sources authored by users.';
+$string['privacy:metadata:query'] = 'Saved SQL data sources authored by users.';
 $string['privacy:metadata:query:ownerid'] = 'User who authored the query.';
 $string['privacy:metadata:query:querysql'] = 'The SQL of the query.';
 $string['privacy:metadata:query:timecreated'] = 'When the query was created.';
-$string['privacy:metadata:queryview'] = 'A log of which published report sources each user has opened.';
-$string['privacy:metadata:queryview:timeviewed'] = 'When the report source was opened.';
-$string['privacy:metadata:queryview:userid'] = 'User who opened the report source.';
+$string['privacy:metadata:queryview'] = 'A log of which published SQL data sources each user has opened.';
+$string['privacy:metadata:queryview:timeviewed'] = 'When the SQL data source was opened.';
+$string['privacy:metadata:queryview:userid'] = 'User who opened the SQL data source.';
 $string['publish'] = 'Publish';
-$string['queries'] = 'Saved SQL reports';
+$string['queries'] = 'Saved SQL data sources';
 $string['querysql'] = 'SQL (SELECT only)';
-$string['querysql_help'] = 'A single SELECT or WITH...SELECT statement. Use Moodle table syntax (e.g. {course}). The plugin creates a database VIEW from this query and exposes its columns as a Reportbuilder source.
+$string['querysql_help'] = 'A single SELECT or WITH...SELECT statement. Use Moodle table syntax (e.g. {course}). The plugin creates a database VIEW from this query and exposes its columns as a Report Builder data source.
 
 Always alias tables (e.g. FROM {user} u) since {user} resolves to mdl_user at runtime.
 
@@ -354,19 +355,19 @@ Wrap a text column in %%CASE(expr, mode)%% to display it in upper, lower, title 
 For the Moodle database schema see <a href="https://www.examulator.com/er/output/index.html" target="_blank">examulator.com/er</a>.
 
 For sample queries and inspiration see <a href="https://docs.moodle.org/502/en/ad-hoc_contributed_reports" target="_blank">Moodle ad-hoc contributed reports</a>.';
-$string['reportsource'] = 'Report source';
+$string['reportsource'] = 'SQL data source';
 $string['reportsourceheader'] = '{$a}';
-$string['reportsources'] = 'SQL Reports';
-$string['repository:intro'] = 'These shared report sources come from the remote repository {$a}. Tick the ones you want and import them. Each is created as a draft owned by you that you must publish before use.';
-$string['repository:introsingle'] = 'These shared report sources come from the remote repository {$a}. Choose one to import. It is created as a draft owned by you, named with a "Sample:" prefix, that you must publish before use.';
+$string['reportsources'] = 'SQL data sources';
+$string['repository:intro'] = 'These shared SQL data sources come from the remote repository {$a}. Tick the ones you want and import them. Each is created as a draft owned by you that you must publish before use.';
+$string['repository:introsingle'] = 'These shared SQL data sources come from the remote repository {$a}. Choose one to import. It is created as a draft owned by you, named with a "Sample:" prefix, that you must publish before use.';
 $string['repository:linklabel'] = 'Import from shared repository';
-$string['repository:none'] = 'No shared report sources could be read from the repository {$a}. Check the URL and that the repository contains report source export files.';
-$string['repository:noneselected'] = 'No report sources were selected.';
+$string['repository:none'] = 'No shared SQL data sources could be read from the repository {$a}. Check the URL and that the repository contains SQL data source export files.';
+$string['repository:noneselected'] = 'No SQL data sources were selected.';
 $string['repository:refresh'] = 'Refresh from repository';
-$string['repository:title'] = 'Shared repository report sources';
-$string['repository:titlesingle'] = 'Import a shared report source';
-$string['repository:unconfigured'] = 'No shared repository is configured. Set one in the plugin settings (Shared report source repository) first.';
-$string['roledescription'] = 'Create, edit and publish report sources (report_sql) site-wide. NOTE: authoring allows arbitrary SQL SELECT against the database, so this role grants effectively site-wide data read. Assign only to trusted report builders.';
+$string['repository:title'] = 'Shared repository SQL data sources';
+$string['repository:titlesingle'] = 'Import a shared SQL data source';
+$string['repository:unconfigured'] = 'No shared repository is configured. Set one in the plugin settings (Shared SQL data source repository) first.';
+$string['roledescription'] = 'Create, edit and publish SQL data sources (report_sql) site-wide. NOTE: authoring allows arbitrary SQL SELECT against the database, so this role grants effectively site-wide data read. Assign only to trusted report builders.';
 $string['rolename'] = 'Report author';
 $string['runreport'] = 'View report';
 $string['samples:coldesc'] = 'Description';
@@ -375,25 +376,25 @@ $string['samples:colselect'] = 'Import';
 $string['samples:duplicates'] = 'Skipped (already present): {$a}.';
 $string['samples:import'] = 'Import';
 $string['samples:importselected'] = 'Import selected';
-$string['samples:intro'] = '{$a} sample report sources are bundled with this plugin. Tick the ones you want and import them. Each is created as a draft owned by you that you must publish before use.';
-$string['samples:introsingle'] = '{$a} sample report sources are bundled with this plugin. Choose one to import. It is created as a draft owned by you, named with a "Sample:" prefix, that you must publish before use.';
-$string['samples:linklabel'] = 'Load sample SQL reports';
-$string['samples:none'] = 'No bundled sample report sources were found.';
+$string['samples:intro'] = '{$a} sample SQL data sources are bundled with this plugin. Tick the ones you want and import them. Each is created as a draft owned by you that you must publish before use.';
+$string['samples:introsingle'] = '{$a} sample SQL data sources are bundled with this plugin. Choose one to import. It is created as a draft owned by you, named with a "Sample:" prefix, that you must publish before use.';
+$string['samples:linklabel'] = 'Load sample SQL data sources';
+$string['samples:none'] = 'No bundled sample SQL data sources were found.';
 $string['samples:noneselected'] = 'No samples were selected.';
 $string['samples:previewsql'] = 'Show SQL';
 $string['samples:requires'] = 'Requires {$a}';
 $string['samples:requiresmissing'] = 'Skipped (required plugin not installed): {$a}.';
 $string['samples:requiresmissingbadge'] = 'Requires {$a} (not installed)';
 $string['samples:showall'] = 'Show {$a} sample(s) that need a plugin not installed here';
-$string['samples:samplelinklabel'] = 'Load sample SQL report';
+$string['samples:samplelinklabel'] = 'Load sample SQL data source';
 $string['samples:sampleprefix'] = 'Sample: {$a}';
 $string['samples:selectall'] = 'Select all';
 $string['samples:selectnone'] = 'Select none';
-$string['samples:title'] = 'Load sample SQL reports';
-$string['samples:titlesingle'] = 'Load sample SQL report';
+$string['samples:title'] = 'Load sample SQL data sources';
+$string['samples:titlesingle'] = 'Load sample SQL data source';
 $string['saveandpublish'] = 'Save and publish';
 $string['saveandpublishedit'] = 'Publish and continue editing';
-$string['savedandpublished'] = 'Changes saved and report published';
+$string['savedandpublished'] = 'Changes saved and SQL data source published';
 $string['savedpublishfailed'] = 'Changes saved, but publishing failed: {$a}';
 $string['schedule'] = 'Schedule emails';
 $string['selectcolumn'] = '(select column)';
@@ -409,23 +410,23 @@ $string['settings:enumrowceiling'] = 'Dropdown filter row ceiling';
 $string['settings:enumrowceiling_desc'] = 'Skip dropdown-filter detection when a published view has more than this many rows, so a large report does not pay a per-column distinct scan at publish time (all its text columns stay free-text). Set to 0 to always probe regardless of size. Only relevant when the dropdown filter threshold is non-zero.';
 $string['settings:enabled'] = 'Enable SQL Report';
 $string['settings:enabled_desc'] = 'When unticked the plugin is disabled: its entry is removed from the Reports menu and its pages (list, edit, run, chart) are blocked. Published reports created through Report Builder are unaffected.';
-$string['settings:sharedrepository'] = 'Shared report source repository';
-$string['settings:sharedrepository_desc'] = 'GitHub repository URL holding shared report source export files. Authors can browse it and import its report sources as drafts. Leave blank to disable the shared repository browser.';
-$string['settings:sharedrepositoryenabled'] = 'Enable shared report source repository';
-$string['settings:sharedrepositoryenabled_desc'] = 'Allow authors to browse and import from the shared report source repository configured below. Disabled by default; while off, no request is made to the remote repository and its browse page and links are hidden.';
+$string['settings:sharedrepository'] = 'Shared SQL data source repository';
+$string['settings:sharedrepository_desc'] = 'GitHub repository URL holding shared SQL data source export files. Authors can browse it and import its SQL data sources as drafts. Leave blank to disable the shared repository browser.';
+$string['settings:sharedrepositoryenabled'] = 'Enable shared SQL data source repository';
+$string['settings:sharedrepositoryenabled_desc'] = 'Allow authors to browse and import from the shared SQL data source repository configured below. Disabled by default; while off, no request is made to the remote repository and its browse page and links are hidden.';
 $string['settings:showbraces'] = 'Show table braces in editor';
 $string['settings:showbraces_desc'] = 'Display Moodle {table} braces around table names in the SQL editor. When off, tables show without braces; either way you never need to type them — braces are added automatically on save.';
 $string['settings:showlastmodified'] = 'Show last modified column';
-$string['settings:showlastmodified_desc'] = 'Show a sortable "Last modified" column in the report sources list.';
+$string['settings:showlastmodified_desc'] = 'Show a sortable "Last modified" column in the SQL data sources list.';
 $string['settings:syntaxhighlight'] = 'SQL syntax highlight and autocomplete';
 $string['settings:syntaxhighlight_desc'] = 'Enable a CodeMirror 6 SQL editor on the query form. Suggests SQL keywords plus Moodle table and column names from the live database.';
 $string['settings:viewretaindays'] = 'View history retention (days)';
 $string['settings:viewretaindays_desc'] = 'How many days to keep the report-view audit history. Older rows are removed by a scheduled task. Set to 0 to keep the history forever.';
-$string['sql:approve'] = 'Approve and publish report sources';
-$string['sql:author'] = 'Author SQL report sources';
-$string['sql:view'] = 'Run published report sources';
-$string['sql:viewall'] = 'View all report sources regardless of audience';
-$string['sql:viewown'] = 'Run report sources in own course';
+$string['sql:approve'] = 'Approve and publish SQL data sources';
+$string['sql:author'] = 'Author SQL data sources';
+$string['sql:view'] = 'Run published SQL data sources';
+$string['sql:viewall'] = 'View all SQL data sources regardless of audience';
+$string['sql:viewown'] = 'Run SQL data sources in own course';
 $string['status'] = 'Status';
 $string['status_draft'] = 'Draft';
 $string['status_published'] = 'Published';
@@ -458,13 +459,13 @@ $string['tokenhintteaches'] = 'Scope the report to courses the viewer teaches: T
 $string['tokenhinttimestamp'] = 'Epoch column to date; optional format, e.g. dd/mm/yyyy';
 $string['tokenhintviewer'] = 'Scope the report to the viewing user: VIEWER(expr) marks the user-id column, e.g. VIEWER(u.id) AS viewerid. Applied per viewer; the column is hidden from output.';
 $string['tokenhintwwwroot'] = 'Site URL (wwwroot)';
-$string['tourdesc'] = 'A short guided tour of the report sources list page.';
+$string['tourdesc'] = 'A short guided tour of the SQL data sources list page.';
 $string['tourname'] = 'SQL Report tour';
-$string['tourstep1content'] = 'Start here to create a report source. Write a SQL <em>SELECT</em> query, then publish it to build a fully configurable Report Builder report — no PHP required.';
-$string['tourstep1title'] = 'Create a report source';
-$string['tourstep2content'] = 'Every report source you have saved is listed here, with its owner and status. Sort or filter any column to find one quickly.';
-$string['tourstep2title'] = 'Your report sources';
-$string['tourstep3content'] = 'The status shows whether a report source is still a <strong>Draft</strong> or has been <strong>Published</strong> as a live report.';
+$string['tourstep1content'] = 'Start here to create a SQL data source. Write a SQL <em>SELECT</em> query, then publish it to build a fully configurable Report Builder report — no PHP required.';
+$string['tourstep1title'] = 'Create a SQL data source';
+$string['tourstep2content'] = 'Every SQL data source you have saved is listed here, with its owner and status. Sort or filter any column to find one quickly.';
+$string['tourstep2title'] = 'Your SQL data sources';
+$string['tourstep3content'] = 'The status shows whether a SQL data source is still a <strong>Draft</strong> or has been <strong>Published</strong>, creating a live report.';
 $string['tourstep3title'] = 'Draft or published';
 $string['tourstep4content'] = 'Edit your query here, or publish a draft to build its live Report Builder report. Unpublishing takes a live report back offline.';
 $string['tourstep4title'] = 'Edit and publish';
@@ -495,10 +496,10 @@ $string['unpublish'] = 'Unpublish';
 $string['usage:detaillabel'] = 'Usage detail';
 $string['usage:detailtitle'] = 'Report usage: {$a}';
 $string['usage:firstviewed'] = 'First viewed';
-$string['usage:intro'] = 'How often each published report source has been opened. Every open of a report is recorded; sort, filter and export the list as needed. History older than the configured retention window is removed automatically.';
+$string['usage:intro'] = 'How often the reports from each published SQL data source have been opened. Every open of a report is recorded; sort, filter and export the list as needed. History older than the configured retention window is removed automatically.';
 $string['usage:lastviewed'] = 'Last viewed';
 $string['usage:linklabel'] = 'Report usage';
-$string['usage:nodata'] = 'This report source has not been opened yet.';
+$string['usage:nodata'] = 'No reports from this SQL data source have been opened yet.';
 $string['usage:perreport'] = 'Views by report';
 $string['usage:recent'] = 'Recent opens';
 $string['usage:report'] = 'Report';
@@ -516,7 +517,7 @@ $string['useridcolumn_help'] = 'Optionally scope this report so each person sees
 $string['useridfilter'] = 'Per-user filter';
 $string['viewchart'] = 'View chart';
 $string['visible'] = 'Visible';
-$string['visible_help'] = 'Controls whether this published report appears in the query listing page. When unchecked, users with the view capability cannot see it. The underlying database view and report still exist — administrators and authors with the viewall capability can still see it.
+$string['visible_help'] = 'Controls whether this published SQL data source appears in the listing page. When unchecked, users with the view capability cannot see it. The underlying database view and report still exist — administrators and authors with the viewall capability can still see it.
 
 For finer-grained access control, use the Audiences feature in Report Builder after publishing: open the report, go to the Audience tab, and restrict by cohort, role, or individual user.';
 $string['warnlinkoffsite'] = 'The %%LINK%% path \'{$a}\' is not site-relative, so that column will show plain text instead of a link. Use a path starting with / (for example /user/view.php?id={}) — links to other sites are not allowed.';

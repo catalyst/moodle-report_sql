@@ -110,7 +110,7 @@ class query extends base {
         // Name. Queries with a chart configured get a leading glyph matching the chart type, so the
         // list tells bar/line/pie apart at a glance (doughnut shares the pie glyph; FA6 has no
         // doughnut icon) — same treatment as the main listing page.
-        $columns[] = (new column('name', new lang_string('name', 'report_sql'), $this->get_entity_name()))
+        $columns[] = (new column('name', new lang_string('sourcename', 'report_sql'), $this->get_entity_name()))
             ->add_joins($this->get_joins())
             ->set_type(column::TYPE_TEXT)
             ->add_fields("{$q}.name, {$q}.id, {$q}.ownerid, {$q}.chartmeta, {$q}.querysql")
@@ -301,7 +301,7 @@ class query extends base {
         $filters[] = (new filter(
             text::class,
             'name',
-            new lang_string('name', 'report_sql'),
+            new lang_string('sourcename', 'report_sql'),
             $this->get_entity_name(),
             "{$q}.name"
         ))
