@@ -8,7 +8,7 @@ SQL Report (`report_sql`) lets you write a SQL `SELECT` query, click **Publish**
 
 ![The Saved report views list with a row's actions menu open](images/report-views-list.png)
 
-Everything starts from the **Saved SQL data sources** list (*Site admin → Reports → SQL Reports*). Each row shows the view's name, owner, status (**Draft** or **Published**) and when it was last changed. A published row offers **Open report**, **Edit**, **Edit in Report Builder** and **Unpublish**; the **⋮** menu adds **Schedule emails**, **New report from this view**, **Duplicate** and **Delete**. Draft rows only offer **Edit** until you publish them. See [Managing report views](#managing-report-views-list-page) for the full workflow.
+Everything starts from the **Saved SQL data sources** list (*Site admin → Reports → Report builder → SQL Report → SQL data sources*). Each row shows the view's name, owner, status (**Draft** or **Published**) and when it was last changed. A published row offers **Open report**, **Edit**, **Edit in Report Builder** and **Unpublish**; the **⋮** menu adds **Schedule emails**, **New report from this view**, **Duplicate** and **Delete**. Draft rows only offer **Edit** until you publish them. See [Managing report views](#managing-report-views-list-page) for the full workflow.
 
 ---
 
@@ -850,7 +850,7 @@ Each page shows every source report, translates its SQL automatically, and marks
 
 The plugin ships a set of ready-made sample report views you can load and adapt. They use only the portable [tokens](#placeholders), so they import and publish on both MySQL/MariaDB and PostgreSQL.
 
-- **Browse and import** — the *Site admin → Reports → SQL Reports → Load sample SQL data sources* page is a bulk picker: tick the samples you want and import them at once; a sample whose name already exists is disabled to avoid duplicates. The **Load sample SQL data source** button on the SQL data sources list page is the one-at-a-time version (imported with a `Sample:` name prefix so it never collides). Either way each lands as a **draft owned by you** that you publish before use.
+- **Browse and import** — the *Site admin → Reports → Report builder → SQL Report → Load sample SQL data sources* page is a bulk picker: tick the samples you want and import them at once; a sample whose name already exists is disabled to avoid duplicates. The **Load sample SQL data source** button on the SQL data sources list page is the one-at-a-time version (imported with a `Sample:` name prefix so it never collides). Either way each lands as a **draft owned by you** that you publish before use.
 - **Post-install** — a notification after install links straight to the same picker.
 - **CLI** — `php report/sql/cli/import.php` bulk-imports a JSON file of report views (defaults to `report_sql.json` in the current directory).
 
