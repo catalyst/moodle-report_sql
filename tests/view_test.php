@@ -38,17 +38,41 @@ final class view_test extends \advanced_testcase {
         $originaldb = $DB;
         try {
             $replica = new class {
+                /** @var int Number of reads performed. */
                 public int $reads = 0;
 
+                /**
+                 * Stub read that records the call and returns no rows.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
                 public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
                     $this->reads++;
                     return [];
                 }
             };
             $DB = new class ($replica) {
-                public function __construct(private object $replica) {
+                /** @var object The replica connection to hand back. */
+                private object $replica;
+
+                /**
+                 * Wrap the replica stub.
+                 *
+                 * @param object $replica
+                 */
+                public function __construct(object $replica) {
+                    $this->replica = $replica;
                 }
 
+                /**
+                 * Stub returning the replica connection.
+                 *
+                 * @return object
+                 */
                 public function get_readonly_connection(): object {
                     return $this->replica;
                 }
@@ -57,6 +81,11 @@ final class view_test extends \advanced_testcase {
             $this->assertSame(1, $replica->reads);
 
             $DB = new class {
+                /**
+                 * Stub reporting that no read-only connection is in use.
+                 *
+                 * @return bool
+                 */
                 public function has_readonly_connection(): bool {
                     return false;
                 }
@@ -65,8 +94,18 @@ final class view_test extends \advanced_testcase {
 
             // Moodle without the read-only connection API: check the main database instead of failing.
             $DB = new class {
+                /** @var int Number of reads performed. */
                 public int $reads = 0;
 
+                /**
+                 * Stub read that records the call and returns no rows.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
                 public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
                     $this->reads++;
                     return [];
@@ -77,6 +116,15 @@ final class view_test extends \advanced_testcase {
 
             // The view never becomes readable: give up once the checks run out.
             $DB = new class {
+                /**
+                 * Stub read that always fails as if the view were missing.
+                 *
+                 * @param string $sql
+                 * @param mixed $params
+                 * @param int $offset
+                 * @param int $limit
+                 * @return array
+                 */
                 public function get_records_sql(string $sql, $params, int $offset, int $limit): array {
                     throw new \dml_read_exception('missing view');
                 }
