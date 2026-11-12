@@ -1,7 +1,7 @@
 # SQL Report
 
-[![Moodle Plugin CI](https://github.com/marcusgreen/report_sql/actions/workflows/ci.yml/badge.svg)](https://github.com/marcusgreen/report_sql/actions/workflows/ci.yml)
-[![GitHub Release](https://img.shields.io/github/release/marcusgreen/report_sql.svg)](https://github.com/marcusgreen/report_sql/releases)
+[![Moodle Plugin CI](https://github.com/catalyst/moodle-report_sql/actions/workflows/ci.yml/badge.svg)](https://github.com/catalyst/moodle-report_sql/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/release/catalyst/moodle-report_sql.svg)](https://github.com/catalyst/moodle-report_sql/releases)
 [![Moodle Support](https://img.shields.io/badge/Moodle-%3E%3D%204.5-blue)](https://moodle.org/plugins/report_sql)
 
 *Reportbuilder ... the SeQueL (Thanks to Adam Jenkins)*
@@ -41,10 +41,16 @@ user documentation for setup.
 
 ## Requirements
 
-- Moodle 4.5 – 5.2
+- Moodle 4.5 – 5.3
 - A database account with permission to create and drop database views.
 
 Check the privilege from **Site admin → Reports → SQL Report → Run database view privilege test**.
+
+### Supported branches
+
+| Moodle version | Branch              |
+|----------------|---------------------|
+| 4.5 – 5.3      | `MOODLE_405_STABLE` |
 
 ### SQL validation
 
