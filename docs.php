@@ -34,6 +34,7 @@ $context = context_system::instance();
 navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
 admin_externalpage_setup('report_sql_docs', '', null, new moodle_url('/report/sql/docs.php'));
 $PAGE->navbar->add(get_string('userdocs', 'report_sql'));
+$PAGE->add_body_class('limitedwidth');
 $PAGE->set_title(get_string('userdocs', 'report_sql'));
 $PAGE->set_heading(get_string('reportsources', 'report_sql'));
 
