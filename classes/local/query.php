@@ -674,24 +674,33 @@ class query {
                     ''
                 );
             }
-            // SQL change while published: drop view + report so they get rebuilt on next publish.
-            // A transaction here would be illusory — tear_down() issues DROP VIEW via
-            // change_database_structure(), and DDL implicitly commits on MySQL. So demote the
-            // record to draft *first*, then tear down: if the teardown fails partway, the record
-            // already reads draft rather than claiming published over a destroyed view/report.
+            // SQL change while published: rebuild the view in place and keep the report (and its id, audiences,
+            // filters and blocks) so that existing links and embeds keep working. Columns that no longer exist
+            // are removed from the report by republish().
             if ($existing->status === self::STATUS_PUBLISHED && $existing->querysql !== $sql) {
-                $record->status        = self::STATUS_DRAFT;
-                $record->viewname      = null;
-                $record->reportid      = null;
-                $record->chartreportid = null;
-                $record->columnsmeta   = null;
-                // Old column names no longer apply once the view is rebuilt.
                 $record->useridcolumn = null;
                 $record->coursecolumn = null;
                 $record->pagecoursecolumn = null;
                 $DB->update_record(self::TABLE, $record);
                 self::save_description_files((int) $record->id, $descdraftid, $desctext, $descformat);
-                self::tear_down((int) $existing->id, $existing);
+                try {
+                    self::get((int) $record->id)->republish();
+                } catch (\Throwable $e) {
+                    // The new SQL can't be compiled, so restore the old SQL and view.
+                    $DB->update_record(self::TABLE, (object) [
+                        'id' => $existing->id,
+                        'querysql' => $existing->querysql,
+                        'useridcolumn' => $existing->useridcolumn,
+                        'coursecolumn' => $existing->coursecolumn,
+                        'pagecoursecolumn' => $existing->pagecoursecolumn,
+                    ]);
+                    try {
+                        view::create_or_replace((int) $existing->id, $existing->querysql, (int) $existing->courseid);
+                    } catch (\moodle_exception $restore) {
+                        debugging('report_sql: failed to restore view: ' . $restore->getMessage());
+                    }
+                    throw $e;
+                }
                 \report_sql\event\query_updated::create_and_trigger($record->id, $record->name);
                 return $record->id;
             }
@@ -872,6 +881,26 @@ class query {
         }
 
         \report_sql\event\query_published::create_and_trigger($this->id(), $this->name());
+    }
+
+    /**
+     * Rebuild the view of a published query after its SQL changed, keeping every bound report.
+     *
+     * Report columns, filters and conditions which refer to view columns that no longer exist are removed.
+     */
+    private function republish(): void {
+        $oldcolumns = array_keys($this->columns_meta());
+
+        // PostgreSQL can't rename or remove columns of an existing view with CREATE OR REPLACE.
+        view::drop($this->id());
+        $this->publish();
+
+        $newcolumns = array_keys($this->columns_meta());
+        foreach (array_diff($oldcolumns, $newcolumns) as $removed) {
+            foreach (self::bound_report_ids($this->id()) as $reportid) {
+                self::purge_report_column($reportid, $removed);
+            }
+        }
     }
 
     /**
