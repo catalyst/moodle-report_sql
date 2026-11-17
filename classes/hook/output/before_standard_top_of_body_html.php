@@ -21,7 +21,7 @@ namespace report_sql\hook\output;
 use core\hook\output\before_standard_top_of_body_html_generation;
 
 /**
- * Injects a "New SQL report" action onto core's Report Builder index page.
+ * Injects a "New SQL data source" action onto core's Report Builder index page.
  *
  * Core's /reportbuilder/index.php renders a fixed "New report" button and exposes no
  * pluggable action slot, so this hook adds a sibling button. It emits the button plus a
@@ -35,7 +35,7 @@ use core\hook\output\before_standard_top_of_body_html_generation;
  */
 class before_standard_top_of_body_html {
     /**
-     * Add the "New SQL report" button to the Report Builder index page.
+     * Add the "New SQL data source" button to the Report Builder index page.
      *
      * @param before_standard_top_of_body_html_generation $hook
      */

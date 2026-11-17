@@ -26,7 +26,7 @@ use report_sql\reportbuilder\local\entities\query as query_entity;
 use moodle_url;
 
 /**
- * System report showing how often each published report source has been opened.
+ * System report showing how often each published SQL data source has been opened.
  *
  * Reads the report_sql_queryview audit table (via the entity's viewcount/lastviewed
  * correlated-subquery columns), giving free sorting, filtering, paging and export. Restricted to
@@ -97,7 +97,7 @@ class usage extends system_report {
         // Only published queries have a report and can accrue views.
         $this->add_base_condition_simple("{$alias}.status", query::STATUS_PUBLISHED);
 
-        // Default sort: busiest report sources first.
+        // Default sort: busiest SQL data sources first.
         $this->set_initial_sort_column("{$entityname}:viewcount", SORT_DESC);
         $this->set_default_per_page(50);
         $this->set_downloadable(true, get_string('usage:title', 'report_sql'));

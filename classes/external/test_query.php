@@ -26,7 +26,7 @@ use core_external\external_value;
 use report_sql\local\sql\analyser;
 
 /**
- * Gives an author advisory feedback on a report source (date columns, row count, indexes).
+ * Gives an author advisory feedback on a SQL data source (date columns, row count, indexes).
  *
  * @package   report_sql
  * @copyright 2026 Marcus Green

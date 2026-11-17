@@ -28,12 +28,9 @@ require_once($CFG->libdir . '/adminlib.php');
 
 $context = context_system::instance();
 
-// Registered in the admin tree (settings.php) gated by report/sql:author, so only authors get the page
-// and the primary/secondary navigation and breadcrumb are set.
-// The listing is the active parent, so tabs and the breadcrumb trail run through index.php.
-navigation_node::override_active_url(new moodle_url('/report/sql/index.php'));
+// Registered in the admin tree (settings.php) under the SQL Report category, gated by report/sql:author,
+// so only authors get the page and the primary/secondary navigation and breadcrumb are set.
 admin_externalpage_setup('report_sql_docs', '', null, new moodle_url('/report/sql/docs.php'));
-$PAGE->navbar->add(get_string('userdocs', 'report_sql'));
 $PAGE->add_body_class('limitedwidth');
 $PAGE->set_title(get_string('userdocs', 'report_sql'));
 $PAGE->set_heading(get_string('reportsources', 'report_sql'));

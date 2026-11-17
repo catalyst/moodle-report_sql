@@ -1,7 +1,7 @@
 # Importing from the Configurable Reports block
 
 `report_sql` can import the SQL reports stored in the **Configurable Reports**
-block (`block_configurable_reports`) and turn them into draft report sources. Each
+block (`block_configurable_reports`) and turn them into draft SQL data sources. Each
 imported report is created as a **draft owned by you** and must be published before it
 becomes a live Report Builder report.
 

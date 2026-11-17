@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Import SQL reports from the Configurable Reports block as draft report sources.
+ * Import SQL reports from the Configurable Reports block as draft SQL data sources.
  *
  * Lists every block_configurable_reports instance split into importable (translates cleanly through
  * {@see \report_sql\local\cr_import}) and rejected (with a reason). The admin ticks the ones

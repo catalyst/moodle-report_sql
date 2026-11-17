@@ -24,15 +24,22 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// The index page lives under Site administration → Reports → Report builder (core's
-// 'reportbuilder' category), sitting alongside the custom-report tools it feeds. Register it
-// OUTSIDE the $hassiteconfig guard so the node's own capability governs visibility — otherwise
-// the guard (moodle/site:config) hides it from non-admins who only hold the author capability.
+// All of this plugin's pages live in their own "SQL Report" category, under Site administration →
+// Reports → Report builder (core's 'reportbuilder' category), alongside the custom-report tools
+// they feed. Register the pages OUTSIDE the $hassiteconfig guard so each node's own capability
+// governs visibility — otherwise the guard (moodle/site:config) hides them from non-admins who
+// only hold the author capability.
 // admin/settings/reportbuilder.php loads (via the settings glob) before this plugin file (loaded
 // from plugins.php), so the category exists here; fall back to 'reports' if it is ever absent.
+// The category only displays when at least one child is visible to the user, so it is safe to
+// register unconditionally.
+$ADMIN->add($ADMIN->locate('reportbuilder') ? 'reportbuilder' : 'reports', new admin_category(
+    'report_sql_category',
+    get_string('pluginname', 'report_sql')
+));
+
 if (\report_sql\local\query::is_plugin_enabled()) {
-    $indexparent = $ADMIN->locate('reportbuilder') ? 'reportbuilder' : 'reports';
-    $ADMIN->add($indexparent, new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_index',
         get_string('reportsources', 'report_sql'),
         new moodle_url('/report/sql/index.php'),
@@ -42,7 +49,7 @@ if (\report_sql\local\query::is_plugin_enabled()) {
 
     // User documentation, listed beside the index. docs.php sets the index page as the active parent
     // for navigation and breadcrumb.
-    $ADMIN->add($indexparent, new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_docs',
         get_string('userdocs', 'report_sql'),
         new moodle_url('/report/sql/docs.php'),
@@ -54,7 +61,7 @@ if (\report_sql\local\query::is_plugin_enabled()) {
 // Usage overview (read-only, viewall-gated). Registered outside the $hassiteconfig guard for the
 // same reason as the index — its own capability governs visibility. Hidden from the tree; reached
 // via the link on the index page.
-$ADMIN->add('reports', new admin_externalpage(
+$ADMIN->add('report_sql_category', new admin_externalpage(
     'report_sql_usage',
     get_string('usage:title', 'report_sql'),
     new moodle_url('/report/sql/usage.php'),
@@ -65,7 +72,7 @@ $ADMIN->add('reports', new admin_externalpage(
 // Sample browser (import bundled sample report views as drafts). Registered outside the
 // $hassiteconfig guard with the author capability so any author — not only site admins — can
 // browse and import samples. Hidden from the tree; reached via the link on the index page.
-$ADMIN->add('reports', new admin_externalpage(
+$ADMIN->add('report_sql_category', new admin_externalpage(
     'report_sql_samples',
     get_string('samples:title', 'report_sql'),
     new moodle_url('/report/sql/samples.php'),
@@ -209,7 +216,7 @@ if ($hassiteconfig) {
         )
     ));
 
-    $ADMIN->add('reports', new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_testview',
         get_string('testview:title', 'report_sql'),
         new moodle_url('/report/sql/testview.php'),
@@ -217,7 +224,7 @@ if ($hassiteconfig) {
         true
     ));
 
-    $ADMIN->add('reports', new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_createrole',
         get_string('createrole:title', 'report_sql'),
         new moodle_url('/report/sql/createrole.php'),
@@ -225,7 +232,7 @@ if ($hassiteconfig) {
         true
     ));
 
-    $ADMIN->add('reports', new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_importcr',
         get_string('crimport:title', 'report_sql'),
         new moodle_url('/report/sql/import_cr.php'),
@@ -233,7 +240,7 @@ if ($hassiteconfig) {
         true
     ));
 
-    $ADMIN->add('reports', new admin_externalpage(
+    $ADMIN->add('report_sql_category', new admin_externalpage(
         'report_sql_importcustomsql',
         get_string('customsqlimport:title', 'report_sql'),
         new moodle_url('/report/sql/import_customsql.php'),

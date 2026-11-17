@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Per-query usage panel: who opens one report source, how often, and the recent trend.
+ * Per-query usage panel: who opens one SQL data source, how often, and the recent trend.
  *
  * View history is manager-level data, so the page is gated on the viewall capability. Reached from
  * the row action on the Report usage overview (usage.php).
