@@ -184,7 +184,8 @@ class validator {
         $tree = [];
         if (!$postgres) {
             $compiled = view::compile(rtrim($sql, "; \t\n\r"));
-            $tree = self::parse($compiled);
+            // The MySQL parser misreads comments (e.g. as extra table references), so parse without them.
+            $tree = self::parse(self::strip_comments($compiled));
             self::check_statement_type($tree);
             mysql_validator::validate($tree, $compiled, self::denied_tables(), self::denied_columns());
         }
@@ -411,6 +412,34 @@ class validator {
             }
             throw new \moodle_exception('errjoinnoon', 'report_sql');
         }
+    }
+
+    /**
+     * Remove comments from SQL, leaving quoted strings and identifiers untouched.
+     *
+     * This follows MySQL, as only its parser needs comment-free SQL: block comments don't nest, and "--" only starts a
+     * comment when followed by whitespace (so "1--1" is arithmetic).
+     *
+     * @param string $sql
+     * @return string
+     * @throws \moodle_exception for MySQL executable comments, as the database would run what the parser can't see.
+     */
+    public static function strip_comments(string $sql): string {
+        $result = preg_replace_callback(
+            '/(\'(?:[^\'\\\\]|\\\\.|\'\')*\'|"(?:[^"]|"")*"|`[^`]*`)|\/\*.*?\*\/|--(?:[ \t\r\n\f]|$)[^\n]*|#[^\n]*/s',
+            static function (array $match): string {
+                if (isset($match[1]) && $match[1] !== '') {
+                    return $match[1];
+                }
+                if (str_starts_with($match[0], '/*!')) {
+                    throw new \moodle_exception('errdeniedkeyword', 'report_sql', '', '/*!');
+                }
+                return ' ';
+            },
+            $sql
+        );
+
+        return $result ?? $sql;
     }
 
     /**

@@ -185,7 +185,8 @@ class view {
      * @return string The compiled SQL sent to CREATE OR REPLACE VIEW.
      */
     public static function compile(string $validatedsql, int $courseid = 0): string {
-        return self::normalise_aliases(self::resolve_placeholders($validatedsql, $courseid));
+        // End with a newline so a trailing "-- comment" can't swallow the ")" of a query wrapping this one.
+        return rtrim(self::normalise_aliases(self::resolve_placeholders($validatedsql, $courseid))) . "\n";
     }
 
     /**

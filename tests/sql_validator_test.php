@@ -561,4 +561,74 @@ final class sql_validator_test extends \advanced_testcase {
         $this->assertNotEmpty(validator::validate('SELECT 1 AS query_to_xml'));
         $this->assertNotEmpty(validator::validate("SELECT xmlconcat('<a/>'::xml, '<b/>'::xml) AS result"));
     }
+
+    /**
+     * Comment and quoting tricks, as MySQL reads them (the only dialect which needs the comments removed for parsing)
+     *
+     * @return array[] [sql, expected result with comments replaced by a space]
+     */
+    public static function strip_comments_provider(): array {
+        return [
+            'line comment' => ["SELECT 1 -- x", "SELECT 1  "],
+            'line comment with tab' => ["SELECT 1 --\tx\nFROM t", "SELECT 1  \nFROM t"],
+            'line comment at end of input' => ["SELECT 1 --", "SELECT 1  "],
+            'line comment with crlf' => ["SELECT 1 -- x\r\nFROM t", "SELECT 1  \nFROM t"],
+            'hash comment' => ["SELECT 1 # x\nFROM t", "SELECT 1  \nFROM t"],
+            'dashes without space are arithmetic' => ["SELECT 1--1 FROM t", "SELECT 1--1 FROM t"],
+            'dashes with letters are arithmetic' => ["SELECT 1--x INTO OUTFILE 'a'", "SELECT 1--x INTO OUTFILE 'a'"],
+            'block comment as whitespace' => ["SELECT/**/1", "SELECT 1"],
+            'block comment splitting a keyword' => ["SEL/**/ECT 1", "SEL ECT 1"],
+            'multiline block comment' => ["SELECT 1 /* a\nb */ FROM t", "SELECT 1   FROM t"],
+            'block comments do not nest' => ["SELECT 1 /* a /* b */ c */", "SELECT 1   c */"],
+            'comment hiding a second statement' => ["SELECT 1 /* ; DROP TABLE t; */", "SELECT 1  "],
+            'comment start inside a block comment' => ["SELECT /* -- */ 1", "SELECT   1"],
+            'unterminated block comment is left alone' => ["SELECT 1 /* x", "SELECT 1 /* x"],
+            'dashes in single quotes' => ["SELECT '-- x' FROM t", "SELECT '-- x' FROM t"],
+            'hash in single quotes' => ["SELECT '# x' FROM t", "SELECT '# x' FROM t"],
+            'block comment in single quotes' => ["SELECT '/* x */' FROM t", "SELECT '/* x */' FROM t"],
+            'dashes in double quotes' => ['SELECT "-- x" FROM t', 'SELECT "-- x" FROM t'],
+            'comment markers in backticks' => ["SELECT `a -- /* #` FROM t", "SELECT `a -- /* #` FROM t"],
+            'doubled single quote' => ["SELECT 'it''s -- not' FROM t -- yes", "SELECT 'it''s -- not' FROM t  "],
+            'backslash escaped quote' => ["SELECT 'it\\'s -- not' FROM t -- yes", "SELECT 'it\\'s -- not' FROM t  "],
+            'quote in a comment' => ["SELECT 1 -- it's\nFROM t", "SELECT 1  \nFROM t"],
+            'quote in a block comment' => ["SELECT /* ' */ 1 /* ' */", "SELECT   1  "],
+            'string after a comment' => ["SELECT 1 /* a */, '/* b */'", "SELECT 1  , '/* b */'"],
+        ];
+    }
+
+    /**
+     * Comments are removed, but not when they are inside strings or quoted identifiers
+     *
+     * @param string $sql
+     * @param string $expected
+     * @dataProvider strip_comments_provider
+     */
+    public function test_strip_comments(string $sql, string $expected): void {
+        $this->assertSame($expected, validator::strip_comments($sql));
+    }
+
+    /**
+     * MySQL runs executable comments, which the parser would not see
+     *
+     * @param string $sql
+     * @dataProvider executable_comments_provider
+     */
+    public function test_strip_comments_rejects_executable_comments(string $sql): void {
+        $this->expectException(\moodle_exception::class);
+        validator::strip_comments($sql);
+    }
+
+    /**
+     * Executable comment variants
+     *
+     * @return string[][]
+     */
+    public static function executable_comments_provider(): array {
+        return [
+            'versioned' => ['SELECT /*!50000 1 */ FROM t'],
+            'unversioned' => ['SELECT /*! 1 */ FROM t'],
+            'after a string' => ["SELECT 'a' /*!50000 , 2 */ FROM t"],
+            'after a line comment' => ["SELECT 1 -- x\n/*! , 2 */"],
+        ];
+    }
 }

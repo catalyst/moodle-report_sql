@@ -290,24 +290,53 @@ final class query_test extends \advanced_testcase {
         $this->assertNull($record->columnsmeta);
     }
 
-    public function test_sql_edit_while_published_demotes_to_draft(): void {
+    public function test_sql_edit_while_published_keeps_report(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $id = query::save($this->formdata(['querysql' => 'SELECT id, username FROM {user}']));
+        query::get($id)->publish();
+        $reportid = (int) query::get($id)->reportid();
+
+        $columns = \core_reportbuilder\local\models\column::get_records(['reportid' => $reportid]);
+        $this->assertNotEmpty($columns);
+
+        // Changing the SQL on a published query rebuilds the view but keeps the same report.
+        query::save($this->formdata(['id' => $id, 'querysql' => 'SELECT id, firstname FROM {user}']));
+
+        $record = $DB->get_record(query::TABLE, ['id' => $id], '*', MUST_EXIST);
+        $this->assertSame(query::STATUS_PUBLISHED, $record->status);
+        $this->assertNotNull($record->viewname);
+        $this->assertEquals($reportid, $record->reportid);
+        $this->assertEquals($id, get_config('report_sql', 'queryid_for_report_' . $reportid));
+        $this->assertEqualsCanonicalizing(['id', 'firstname'], array_keys(query::get($id)->columns_meta()));
+
+        // The column that disappeared is removed from the report, the others are kept.
+        $identifiers = array_map(
+            fn($column) => $column->get('uniqueidentifier'),
+            \core_reportbuilder\local\models\column::get_records(['reportid' => $reportid])
+        );
+        $this->assertContains('adhoc:id', $identifiers);
+        $this->assertNotContains('adhoc:username', $identifiers);
+    }
+
+    public function test_sql_edit_while_published_with_invalid_sql_keeps_old_sql(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
 
         $id = query::save($this->formdata());
         query::get($id)->publish();
-        $reportid = (int) query::get($id)->reportid();
 
-        // Changing the SQL on a published query tears down view + report and returns to draft.
-        query::save($this->formdata(['id' => $id, 'querysql' => 'SELECT id, username FROM {user}']));
-
-        $record = $DB->get_record(query::TABLE, ['id' => $id], '*', MUST_EXIST);
-        $this->assertSame(query::STATUS_DRAFT, $record->status);
-        $this->assertNull($record->viewname);
-        $this->assertNull($record->reportid);
-        // The bound report config key is cleaned up by tear_down().
-        $this->assertFalse(get_config('report_sql', 'queryid_for_report_' . $reportid));
+        try {
+            query::save($this->formdata(['id' => $id, 'querysql' => 'SELECT id, nosuchcolumn FROM {user}']));
+            $this->fail('Expected exception');
+        } catch (\Throwable $e) {
+            $record = $DB->get_record(query::TABLE, ['id' => $id], '*', MUST_EXIST);
+            $this->assertSame('SELECT id FROM {user}', $record->querysql);
+            $this->assertSame(query::STATUS_PUBLISHED, $record->status);
+        }
     }
 
     public function test_duplicate_creates_draft_copy(): void {

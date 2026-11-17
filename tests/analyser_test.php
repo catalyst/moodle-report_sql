@@ -40,6 +40,15 @@ final class analyser_test extends \advanced_testcase {
     }
 
     /**
+     * A trailing line comment must not break the queries that wrap the SQL.
+     */
+    public function test_trailing_comment(): void {
+        $this->resetAfterTest();
+        $result = analyser::analyse("SELECT\n    id\nFROM\n    {user}\n\n-- stuff");
+        $this->assertTrue($result['ok'], (string) ($result['error'] ?? ''));
+    }
+
+    /**
      * SQL that passes static validation but references a non-existent table fails the live
      * dry-run with ok=false and a message, rather than silently reporting rowcount -1.
      */
