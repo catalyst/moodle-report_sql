@@ -5,7 +5,10 @@ on: [push, pull_request]
 
 jobs:
   ci:
-    uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@main
+    uses: catalyst/catalyst-moodle-workflows/.github/workflows/ci.yml@add-mssql-support
     secrets: inherit
     permissions:
       contents: write
+    with:
+      enable_mssql: true
+      internal_workflow_branch: add-mssql-support
