@@ -169,6 +169,8 @@ final class view_test extends \advanced_testcase {
 
         if ($DB->get_dbfamily() === 'postgres') {
             $this->assertStringContainsString("EXTRACT(EPOCH FROM TIMESTAMP '2015-01-01 00:00:00')::int", $resolved);
+        } else if ($DB->get_dbfamily() === 'mssql') {
+            $this->assertStringContainsString("DATEDIFF_BIG(SECOND, '1970-01-01', '2015-01-01 00:00:00')", $resolved);
         } else {
             $this->assertStringContainsString("UNIX_TIMESTAMP('2015-01-01 00:00:00')", $resolved);
         }
@@ -186,6 +188,8 @@ final class view_test extends \advanced_testcase {
 
         if ($DB->get_dbfamily() === 'postgres') {
             $this->assertStringContainsString('EXTRACT(EPOCH FROM (u.timecreated))::int', $resolved);
+        } else if ($DB->get_dbfamily() === 'mssql') {
+            $this->assertStringContainsString("DATEDIFF_BIG(SECOND, '1970-01-01', (u.timecreated))", $resolved);
         } else {
             $this->assertStringContainsString('UNIX_TIMESTAMP(u.timecreated)', $resolved);
         }
@@ -203,6 +207,8 @@ final class view_test extends \advanced_testcase {
 
         if ($DB->get_dbfamily() === 'postgres') {
             $this->assertStringContainsString('EXTRACT(EPOCH FROM now())::int', $resolved);
+        } else if ($DB->get_dbfamily() === 'mssql') {
+            $this->assertStringContainsString("DATEDIFF_BIG(SECOND, '1970-01-01', SYSUTCDATETIME())", $resolved);
         } else {
             $this->assertStringContainsString('UNIX_TIMESTAMP()', $resolved);
         }
@@ -452,6 +458,8 @@ final class view_test extends \advanced_testcase {
 
         if ($DB->get_dbfamily() === 'postgres') {
             $this->assertStringContainsString("string_agg((c.shortname)::text, ', ')", $resolved);
+        } else if ($DB->get_dbfamily() === 'mssql') {
+            $this->assertStringContainsString("STRING_AGG(CAST((c.shortname) AS NVARCHAR(MAX)), ', ')", $resolved);
         } else {
             $this->assertStringContainsString("GROUP_CONCAT(c.shortname SEPARATOR ', ')", $resolved);
         }
@@ -469,6 +477,8 @@ final class view_test extends \advanced_testcase {
 
         if ($DB->get_dbfamily() === 'postgres') {
             $this->assertStringContainsString("string_agg((u.lastname)::text, ',')", $resolved);
+        } else if ($DB->get_dbfamily() === 'mssql') {
+            $this->assertStringContainsString("STRING_AGG(CAST((u.lastname) AS NVARCHAR(MAX)), ',')", $resolved);
         } else {
             $this->assertStringContainsString("GROUP_CONCAT(u.lastname SEPARATOR ',')", $resolved);
         }
@@ -476,11 +486,15 @@ final class view_test extends \advanced_testcase {
 
     /**
      * A leading DISTINCT keyword is carried through into the same position for both engines, and a
-     * separator literal containing a comma (', ') is not mis-split at that inner comma.
+     * separator literal containing a comma (', ') is not mis-split at that inner comma. SQL Server has no
+     * DISTINCT form of STRING_AGG, so this case is covered by the mssql-only rejection test instead.
      */
     public function test_resolve_group_concat_distinct_and_comma_separator(): void {
         global $DB;
         $this->resetAfterTest();
+        if ($DB->get_dbfamily() === 'mssql') {
+            $this->markTestSkipped('SQL Server STRING_AGG has no DISTINCT form.');
+        }
 
         $resolved = view::resolve_placeholders(
             "SELECT %%GROUP_CONCAT(DISTINCT c.format, ', ')%% AS formats FROM {course} c"
@@ -492,5 +506,69 @@ final class view_test extends \advanced_testcase {
             $this->assertStringContainsString("GROUP_CONCAT(DISTINCT c.format SEPARATOR ', ')", $resolved);
         }
         $this->assertStringNotContainsString('%%', $resolved);
+    }
+
+    /**
+     * On SQL Server, %%GROUP_CONCAT(DISTINCT ...)%% is rejected with a clear error rather than emitted.
+     */
+    public function test_resolve_group_concat_distinct_rejected_on_mssql(): void {
+        global $DB;
+        $this->resetAfterTest();
+        if ($DB->get_dbfamily() !== 'mssql') {
+            $this->markTestSkipped('Only SQL Server rejects GROUP_CONCAT DISTINCT.');
+        }
+
+        $this->expectException(\moodle_exception::class);
+        view::resolve_placeholders("SELECT %%GROUP_CONCAT(DISTINCT c.format, ', ')%% AS formats FROM {course} c");
+    }
+
+    /**
+     * The top-level ORDER BY gets an OFFSET suffix on its own line, so a trailing comment cannot swallow it.
+     * Look-alikes in literals, comments, brackets, nested scopes and window clauses do not count, and
+     * statements already bounded by TOP, OFFSET / FETCH or FOR XML are left unchanged.
+     */
+    public function test_append_order_by_offset(): void {
+        $this->assertSame(
+            "SELECT id FROM t ORDER BY id\nOFFSET 0 ROWS",
+            view::append_order_by_offset('SELECT id FROM t ORDER BY id')
+        );
+        $this->assertSame(
+            "WITH c AS (SELECT id FROM t) SELECT id FROM c ORDER BY id\nOFFSET 0 ROWS",
+            view::append_order_by_offset('WITH c AS (SELECT id FROM t) SELECT id FROM c ORDER BY id')
+        );
+        $this->assertSame(
+            "SELECT a FROM t UNION SELECT a FROM u ORDER BY a\nOFFSET 0 ROWS",
+            view::append_order_by_offset('SELECT a FROM t UNION SELECT a FROM u ORDER BY a')
+        );
+        $this->assertSame(
+            "SELECT a FROM t UNION ALL SELECT a FROM u ORDER BY a\nOFFSET 0 ROWS",
+            view::append_order_by_offset('SELECT a FROM t UNION ALL SELECT a FROM u ORDER BY a')
+        );
+        $this->assertSame(
+            "SELECT id FROM t ORDER BY fetch\nOFFSET 0 ROWS",
+            view::append_order_by_offset('SELECT id FROM t ORDER BY fetch')
+        );
+        $this->assertSame(
+            "SELECT id FROM t ORDER BY id DESC -- trailing\nOFFSET 0 ROWS",
+            view::append_order_by_offset('SELECT id FROM t ORDER BY id DESC -- trailing')
+        );
+
+        $unchanged = [
+            'SELECT * FROM (SELECT id FROM t ORDER BY id) x',
+            'SELECT ROW_NUMBER() OVER (ORDER BY id) AS rn FROM t',
+            'WITH c AS (SELECT id FROM t ORDER BY id) SELECT id FROM c',
+            "SELECT id FROM t WHERE x = 'ORDER BY' -- ORDER BY y",
+            'SELECT TOP 5 id FROM t ORDER BY id',
+            'SELECT DISTINCT TOP 5 id FROM t ORDER BY id',
+            'SELECT id FROM t ORDER BY id OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY',
+            'SELECT id FROM t ORDER BY id OFFSET 0 ROWS',
+            'SELECT id FROM t ORDER BY id FOR XML PATH(\'\')',
+            'SELECT a FROM t UNION SELECT a FROM u ORDER BY a OFFSET 0 ROWS',
+            'SELECT a FROM t UNION ALL SELECT a FROM u',
+            '',
+        ];
+        foreach ($unchanged as $sql) {
+            $this->assertSame($sql, view::append_order_by_offset($sql));
+        }
     }
 }

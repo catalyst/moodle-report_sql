@@ -592,10 +592,10 @@ trait import_helper {
     private static function dry_run(string $validated): ?string {
         global $DB, $CFG;
 
-        $resolved = view::resolve_placeholders($validated);
+        $resolved = view::for_subquery(view::resolve_placeholders($validated));
 
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $DB->get_records_sql("SELECT * FROM (\n{$resolved}\n) rs_dryrun", [], 0, 1);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             // SELECT * across joined tables yields duplicate output column names (e.g. several `id`),
@@ -608,7 +608,7 @@ trait import_helper {
 
         $testview = $CFG->prefix . \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         try {
-            $DB->change_database_structure("CREATE OR REPLACE VIEW {$testview} AS {$resolved}");
+            $DB->change_database_structure(view::create_or_replace_ddl($testview, $resolved));
             $DB->change_database_structure("DROP VIEW IF EXISTS {$testview}");
         } catch (\moodle_exception $e) {
             $detail = $e->debuginfo ?: $e->getMessage();

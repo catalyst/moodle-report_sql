@@ -74,15 +74,13 @@ class validate_sql extends external_api {
         // compiledsql we return on error is the string the DB error line numbers refer to.
         $resolved = view::compile($validated);
 
-        // Syntax/table/column check — LIMIT 1 fetches a single row so the select-list
-        // expressions are actually evaluated, catching row-dependent runtime errors
-        // (e.g. to_char() on a bigint with a date mask) that LIMIT 0 would let through.
-        // Wrap as a subquery so the LIMIT cannot be swallowed by a trailing line comment
-        // (`... -- note` would otherwise comment out an appended LIMIT, fetching the whole
-        // table into memory). Unlike the VIEW-create check below, a row dry-run does not care
-        // about duplicate output column names, so wrapping is safe here.
+        // Syntax/table/column check — a single-row fetch evaluates the select-list expressions, catching
+        // row-dependent runtime errors (e.g. to_char() on a bigint with a date mask) that LIMIT 0 would let
+        // through. Wrap as a subquery, with the SQL on its own lines, so a trailing line comment in the
+        // author SQL cannot swallow the closing parenthesis. Unlike the VIEW-create check below, a row
+        // dry-run does not care about duplicate output column names, so wrapping is safe here.
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $DB->get_records_sql("SELECT * FROM (\n{$resolved}\n) rs_dryrun", [], 0, 1);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             return ['ok' => false, 'error' => validator::clean_error($detail), 'compiledsql' => $resolved];
@@ -95,7 +93,7 @@ class validate_sql extends external_api {
         $testview = $CFG->prefix . \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         $probeview = \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         try {
-            $DB->change_database_structure("CREATE OR REPLACE VIEW {$testview} AS {$resolved}");
+            $DB->change_database_structure(view::create_or_replace_ddl($testview, $resolved));
             // An unaliased expression (e.g. count(*)) becomes a VIEW column Report Builder can't
             // reference; catch it now rather than letting publish fail with a coding_exception.
             $badcol = view::first_unaliased_column(view::columns($probeview));

@@ -52,13 +52,7 @@ final class query_test extends \advanced_testcase {
      */
     protected function tearDown(): void {
         global $DB;
-        $prefix = $DB->get_prefix() . 'report_sql_v_';
-        $views = $DB->get_records_sql(
-            "SELECT table_name FROM information_schema.views WHERE table_name LIKE ?",
-            [$prefix . '%']
-        );
-        foreach ($views as $view) {
-            $name = $view->table_name ?? reset($view);
+        foreach (\report_sql\local\sql\view::list_views($DB->get_prefix() . 'report_sql_v_') as $name) {
             $DB->execute('DROP VIEW IF EXISTS ' . $name);
         }
         parent::tearDown();
@@ -162,6 +156,29 @@ final class query_test extends \advanced_testcase {
      * A %%VIEWER(expr)%% token is adopted as the per-user filter at publish: useridcolumn is set to
      * the produced (aliased) column, so the datasource scopes rows to the viewer at run time.
      */
+    /**
+     * A low-cardinality text column is flagged as an enum dropdown while enumrowceiling is set. The
+     * row-count guard must not disable detection: on SQL Server a bare SELECT TOP n in its derived table
+     * fails (error 8155) and would silently skip every enum probe.
+     */
+    public function test_publish_flags_low_cardinality_text_as_enum_with_row_ceiling(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        set_config('enumfilterthreshold', 5, 'report_sql');
+        set_config('enumrowceiling', 1000, 'report_sql');
+
+        $id = query::save($this->formdata([
+            'name'     => 'Enum view',
+            'querysql' => "SELECT id, CASE WHEN id = 1 THEN 'one' ELSE 'other' END AS bucket FROM {user}",
+        ]));
+        query::get($id)->publish();
+
+        $meta = json_decode($DB->get_field(query::TABLE, 'columnsmeta', ['id' => $id], MUST_EXIST), true);
+        $this->assertTrue($meta['bucket']['enum'] ?? false);
+        $this->assertArrayNotHasKey('enum', $meta['id']);
+    }
+
     public function test_publish_viewer_token_sets_useridcolumn(): void {
         global $DB;
         $this->resetAfterTest();
@@ -720,7 +737,7 @@ final class query_test extends \advanced_testcase {
             $this->getDataGenerator()->create_user(['username' => $username]);
         }
 
-        $sql = "SELECT u.username AS uname FROM {user} u WHERE u.username LIKE 'rsorder\\_%' ORDER BY uname ASC";
+        $sql = "SELECT u.username AS uname FROM {user} u WHERE u.username LIKE 'rsorder%' ORDER BY uname ASC";
         $html = \report_sql_output_fragment_preview(['sql' => $sql, 'courseid' => 0]);
 
         // Rows appear in ORDER BY order, not insertion order.

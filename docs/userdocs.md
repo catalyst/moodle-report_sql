@@ -524,12 +524,12 @@ GROUP BY cc.name
 
 → one row per category, `formats` = `singleactivity, topics, weeks`.
 
-Why a token instead of SQL `GROUP_CONCAT()` / `string_agg()`? **Cross-database.** MySQL/MariaDB spells it `GROUP_CONCAT(expr SEPARATOR 'sep')`; PostgreSQL spells it `string_agg(expr::text, 'sep')`. The token emits the right one for the live database, so the same report view runs on both.
+Why a token instead of SQL `GROUP_CONCAT()` / `string_agg()`? **Cross-database.** MySQL/MariaDB spells it `GROUP_CONCAT(expr SEPARATOR 'sep')`; PostgreSQL spells it `string_agg(expr::text, 'sep')`; SQL Server spells it `STRING_AGG(expr, 'sep')` (SQL Server 2017 or later). The token emits the right one for the live database, so the same report view runs on each.
 
 Notes:
 
 - The **separator** is an optional single-quoted literal (`', '`, `' | '`, …). It may contain a comma. Omit it and the default is `,`.
-- An optional leading `DISTINCT` (`%%GROUP_CONCAT(DISTINCT c.format)%%`) removes duplicate values before joining.
+- An optional leading `DISTINCT` (`%%GROUP_CONCAT(DISTINCT c.format)%%`) removes duplicate values before joining. It is not available on SQL Server, which has no DISTINCT form of `STRING_AGG`; there, remove duplicates in a subquery first (`FROM (SELECT DISTINCT category, format FROM {course}) d`) and aggregate without DISTINCT.
 - Give the output an `AS alias`. The aggregated column reads back as plain **text** (no date/case display transform).
 - Use inside a query that has a `GROUP BY` — this is an aggregate, like `COUNT()` / `SUM()`.
 - `expr` **cannot contain a `%` character** (the token scan stops at `%`), same as `%%TIMESTAMP%%` / `%%CASE%%`.

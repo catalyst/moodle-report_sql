@@ -76,13 +76,7 @@ final class chart_query_test extends \advanced_testcase {
      */
     protected function tearDown(): void {
         global $DB;
-        $prefix = $DB->get_prefix() . 'report_sql_v_';
-        $views = $DB->get_records_sql(
-            "SELECT table_name FROM information_schema.views WHERE table_name LIKE ?",
-            [$prefix . '%']
-        );
-        foreach ($views as $view) {
-            $name = $view->table_name ?? reset($view);
+        foreach (\report_sql\local\sql\view::list_views($DB->get_prefix() . 'report_sql_v_') as $name) {
             $DB->execute('DROP VIEW IF EXISTS ' . $name);
         }
         parent::tearDown();

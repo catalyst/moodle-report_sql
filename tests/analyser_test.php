@@ -192,7 +192,7 @@ final class analyser_test extends \advanced_testcase {
      */
     public function test_case_column_partial_expression_skipped(): void {
         $this->resetAfterTest();
-        $result = analyser::analyse("SELECT UPPER(firstname) || ' ' || lastname AS n FROM {user}");
+        $result = analyser::analyse("SELECT CONCAT(UPPER(firstname), ' ', lastname) AS n FROM {user}");
         $this->assertTrue($result['ok']);
         $this->assertSame([], $result['casecolumns']);
     }
