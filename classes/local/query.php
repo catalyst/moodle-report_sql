@@ -1389,6 +1389,24 @@ class query {
     }
 
     /**
+     * Build the row-count guard query: a COUNT over at most $n rows of the live view.
+     *
+     * SQL Server has no LIMIT, so it bounds the rows with TOP. The TOP form needs a column alias
+     * inside the derived table: a bare `SELECT TOP n 1` fails with error 8155 (no column name).
+     *
+     * @param string $viewname Live view name (without prefix).
+     * @param int $n Maximum number of rows the derived table may return.
+     * @return string
+     */
+    private static function enum_guard_sql(string $viewname, int $n): string {
+        global $DB;
+        if ($DB->get_dbfamily() === 'mssql') {
+            return "SELECT COUNT(*) FROM (\nSELECT TOP {$n} 1 AS x FROM {{$viewname}}\n) rs_enumguard";
+        }
+        return "SELECT COUNT(*) FROM (\nSELECT 1 FROM {{$viewname}} LIMIT {$n}\n) rs_enumguard";
+    }
+
+    /**
      * Flag plain-text columns whose distinct-value count is within the `enumfilterthreshold` setting,
      * so the entity gives them a dropdown filter. Timestamp columns and %%CASE%% text-transform columns
      * are skipped (the latter sort/filter on the original value but a dropdown of raw values would be
@@ -1415,11 +1433,7 @@ class query {
         $ceiling = (int) get_config('report_sql', 'enumrowceiling');
         if ($ceiling > 0) {
             try {
-                $rows = $DB->count_records_sql(
-                    "SELECT COUNT(*) FROM (
-                        SELECT 1 FROM {{$viewname}} LIMIT " . ($ceiling + 1) . "
-                    ) rs_enumguard"
-                );
+                $rows = $DB->count_records_sql(self::enum_guard_sql($viewname, $ceiling + 1));
             } catch (\dml_exception $e) {
                 return;
             }
@@ -1433,20 +1447,26 @@ class query {
             if (($info['type'] ?? 'text') !== 'text' || isset($info['textcase']) || isset($info['link'])) {
                 continue;
             }
+            // Cap the scan: we only care whether the distinct count is <= threshold, so stop after
+            // threshold + 1 distinct values. A result of threshold + 1 means "more than threshold"
+            // (not a dropdown); anything less is the true distinct count. Bounds worst-case cost to
+            // threshold + 1 rows instead of a full-column distinct scan.
+            $rs = null;
             try {
-                // Cap the scan: we only care whether the distinct count is <= threshold, so stop after
-                // threshold + 1 distinct values. A result of threshold + 1 means "more than threshold"
-                // (not a dropdown); anything less is the true distinct count. Bounds worst-case cost to
-                // threshold + 1 rows instead of a full-column distinct scan.
-                $distinct = $DB->count_records_sql(
-                    "SELECT COUNT(*) FROM (
-                        SELECT DISTINCT {$name} FROM {{$viewname}}
-                         WHERE {$name} IS NOT NULL
-                         LIMIT " . ($threshold + 1) . "
-                    ) rs_enum"
+                $rs = $DB->get_recordset_sql(
+                    "SELECT DISTINCT {$name} FROM {{$viewname}} WHERE {$name} IS NOT NULL",
+                    [],
+                    0,
+                    $threshold + 1
                 );
+                $distinct = 0;
+                foreach ($rs as $row) {
+                    $distinct++;
+                }
             } catch (\dml_exception $e) {
                 continue;
+            } finally {
+                $rs?->close();
             }
             if ($distinct >= 2 && $distinct <= $threshold) {
                 $meta[$name]['enum'] = true;

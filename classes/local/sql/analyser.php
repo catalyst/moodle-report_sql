@@ -205,12 +205,12 @@ class analyser {
      */
     private static function dry_run(string $resolved): ?string {
         global $DB;
-        // Wrap as a subquery so a trailing line comment in the author SQL cannot swallow the LIMIT
-        // (`... -- note` would otherwise comment out an appended LIMIT and fetch the whole table).
-        // LIMIT 1 (not 0) materialises a row, so select-list expressions are actually evaluated —
-        // catching row-dependent errors like to_char() on a bigint that LIMIT 0 would let through.
+        // Wrap as a subquery, with the SQL on its own lines, so a trailing line comment in the author SQL
+        // cannot swallow the closing parenthesis. A single-row fetch (not 0) materialises a row, so
+        // select-list expressions are actually evaluated — catching row-dependent errors like to_char() on
+        // a bigint that a zero-row fetch would let through.
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $DB->get_records_sql("SELECT * FROM (\n{$resolved}\n) rs_dryrun", [], 0, 1);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             return validator::clean_error($detail);
@@ -287,7 +287,7 @@ class analyser {
         // Sample one row so a name match can be corroborated by a plausible-epoch value.
         $sample = null;
         try {
-            $rows = $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_sample LIMIT 1", []);
+            $rows = $DB->get_records_sql("SELECT * FROM (\n{$resolved}\n) rs_sample", [], 0, 1);
             $sample = $rows ? (array) reset($rows) : [];
         } catch (\dml_exception $e) {
             $sample = [];
