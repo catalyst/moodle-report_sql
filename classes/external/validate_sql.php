@@ -95,7 +95,7 @@ class validate_sql extends external_api {
         $testview = $CFG->prefix . \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         $probeview = \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         try {
-            $DB->change_database_structure("CREATE OR REPLACE VIEW {$testview} AS {$resolved}");
+            $DB->change_database_structure(view::create_or_replace_ddl($testview, $resolved));
             // An unaliased expression (e.g. count(*)) becomes a VIEW column Report Builder can't
             // reference; catch it now rather than letting publish fail with a coding_exception.
             $badcol = view::first_unaliased_column(view::columns($probeview));
