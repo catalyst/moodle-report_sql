@@ -273,7 +273,7 @@ class analyser {
             $fullprobe = $CFG->prefix . $probe;
             $columns = [];
             try {
-                $DB->change_database_structure("CREATE OR REPLACE VIEW {$fullprobe} AS {$resolved}");
+                $DB->change_database_structure(view::create_or_replace_ddl($fullprobe, $resolved));
                 $columns = view::columns($probe);
                 $DB->change_database_structure("DROP VIEW IF EXISTS {$fullprobe}");
             } catch (\moodle_exception $e) {

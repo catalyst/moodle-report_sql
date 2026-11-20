@@ -48,7 +48,7 @@ class privilege_check {
         }
 
         try {
-            $DB->change_database_structure("CREATE OR REPLACE VIEW {$fullname} AS SELECT 1 AS x");
+            $DB->change_database_structure(view::create_or_replace_ddl($fullname, 'SELECT 1 AS x'));
         } catch (\dml_exception $e) {
             return ['ok' => false, 'error' => self::detail($e)];
         }

@@ -151,7 +151,7 @@ class view {
         $fullname = $CFG->prefix . $viewname;
         $resolved = self::compile($validatedsql, $courseid);
 
-        $ddl = "CREATE OR REPLACE VIEW {$fullname} AS {$resolved}";
+        $ddl = self::create_or_replace_ddl($fullname, $resolved);
 
         try {
             $DB->change_database_structure($ddl);
@@ -172,6 +172,21 @@ class view {
             throw new \moodle_exception('errcreateview', 'report_sql', '', $detail);
         }
         return $viewname;
+    }
+
+    /**
+     * Build a DDL statement that creates the view, replacing any existing view of that name.
+     *
+     * SQL Server has no CREATE OR REPLACE VIEW; CREATE OR ALTER VIEW is its equivalent (SQL Server 2016 SP1+).
+     *
+     * @param string $fullname View name including the Moodle prefix.
+     * @param string $select The SELECT the view is defined by.
+     * @return string
+     */
+    public static function create_or_replace_ddl(string $fullname, string $select): string {
+        global $DB;
+        $keyword = $DB->get_dbfamily() === 'mssql' ? 'CREATE OR ALTER' : 'CREATE OR REPLACE';
+        return "{$keyword} VIEW {$fullname} AS {$select}";
     }
 
     /**

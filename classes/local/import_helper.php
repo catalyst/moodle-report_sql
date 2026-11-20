@@ -608,7 +608,7 @@ trait import_helper {
 
         $testview = $CFG->prefix . \report_sql\local\sql\privilege_check::PROBE_NAME . '_col';
         try {
-            $DB->change_database_structure("CREATE OR REPLACE VIEW {$testview} AS {$resolved}");
+            $DB->change_database_structure(view::create_or_replace_ddl($testview, $resolved));
             $DB->change_database_structure("DROP VIEW IF EXISTS {$testview}");
         } catch (\moodle_exception $e) {
             $detail = $e->debuginfo ?: $e->getMessage();
