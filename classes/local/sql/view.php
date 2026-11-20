@@ -175,6 +175,85 @@ class view {
     }
 
     /**
+     * Names of the views in the current database whose names start with the given prefix.
+     *
+     * Uses upper-case INFORMATION_SCHEMA.VIEWS / TABLE_NAME: SQL Server with a case-sensitive collation
+     * rejects the lower-case spelling, and the upper-case form works on MySQL, PostgreSQL and SQL Server.
+     *
+     * @param string $prefix View-name prefix, including the Moodle table prefix.
+     * @return string[] Full view names.
+     */
+    public static function list_views(string $prefix): array {
+        global $DB;
+        return $DB->get_fieldset_sql(
+            'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME LIKE ?',
+            [$prefix . '%']
+        );
+    }
+
+    /**
+     * Prepare placeholder-resolved SQL to be wrapped in a VIEW or derived table.
+     *
+     * SQL Server rejects an ORDER BY in a view or derived table unless TOP, OFFSET or FOR XML is also
+     * given. On mssql, {@see append_order_by_offset()} adds an OFFSET clause to a top-level ORDER BY and
+     * leaves the author's SQL otherwise intact. Report Builder re-applies the query's ORDER BY as its
+     * default sorting from the original SQL (see query::order_by_sorting()), so the view's own ordering
+     * is not relied on. Other families are returned unchanged.
+     *
+     * @param string $resolved SQL after placeholders have been resolved.
+     * @return string
+     */
+    public static function for_subquery(string $resolved): string {
+        global $DB;
+        return $DB->get_dbfamily() === 'mssql' ? self::append_order_by_offset($resolved) : $resolved;
+    }
+
+    /**
+     * Append "OFFSET 0 ROWS" to a statement whose top-level ORDER BY SQL Server would reject in a view.
+     *
+     * The SQL is returned unchanged unless it parses, has a top-level ORDER BY, and that ORDER BY is not
+     * already bounded by TOP, OFFSET / FETCH or FOR XML. The suffix starts on a new line so that a
+     * trailing "-- comment" in the author's SQL cannot swallow it. This is database-independent: callers
+     * decide whether the dialect needs it.
+     *
+     * @param string $sql A single SELECT or WITH statement.
+     * @return string
+     */
+    public static function append_order_by_offset(string $sql): string {
+        global $CFG;
+
+        if (!class_exists(\PHPSQLParser\PHPSQLParser::class)) {
+            require_once($CFG->dirroot . '/report/sql/vendor/autoload.php');
+        }
+        try {
+            $tree = (new \PHPSQLParser\PHPSQLParser($sql))->parsed;
+        } catch (\Throwable $e) {
+            return $sql;
+        }
+        if (!is_array($tree) || $tree === []) {
+            return $sql;
+        }
+
+        // A UNION (or UNION ALL) keeps the trailing ORDER BY, and any OFFSET / FOR XML, under key 0.
+        $tail = isset($tree['ORDER']) ? $tree : ($tree[0] ?? []);
+        if (!isset($tail['ORDER']) || isset($tail['LIMIT']) || isset($tail['OPTIONS'])) {
+            return $sql;
+        }
+        foreach ($tail['ORDER'] as $item) {
+            if (preg_match('/\s(?:OFFSET|FETCH)\b/i', $item['base_expr'] ?? '')) {
+                return $sql;
+            }
+        }
+        foreach ($tree['SELECT'] ?? [] as $item) {
+            if (preg_match('/^TOP\s+[\d(@]/i', trim($item['base_expr'] ?? ''))) {
+                return $sql;
+            }
+        }
+
+        return $sql . "\nOFFSET 0 ROWS";
+    }
+
+    /**
      * Build a DDL statement that creates the view, replacing any existing view of that name.
      *
      * SQL Server has no CREATE OR REPLACE VIEW; CREATE OR ALTER VIEW is its equivalent (SQL Server 2016 SP1+).
@@ -200,7 +279,7 @@ class view {
      * @return string The compiled SQL sent to CREATE OR REPLACE VIEW.
      */
     public static function compile(string $validatedsql, int $courseid = 0): string {
-        return self::normalise_aliases(self::resolve_placeholders($validatedsql, $courseid));
+        return self::normalise_aliases(self::for_subquery(self::resolve_placeholders($validatedsql, $courseid)));
     }
 
     /**
@@ -405,16 +484,27 @@ RULES;
         }
 
         // Token %%NOW%% — current Unix time, expanded to the dialect of the live database.
-        $postgres = $DB->get_dbfamily() === 'postgres';
-        $sql = str_ireplace('%%NOW%%', $postgres ? 'EXTRACT(EPOCH FROM now())::int' : 'UNIX_TIMESTAMP()', $sql);
+        $family = $DB->get_dbfamily();
+        $postgres = $family === 'postgres';
+        $mssql = $family === 'mssql';
+        $nowexpr = match ($family) {
+            'postgres' => 'EXTRACT(EPOCH FROM now())::int',
+            'mssql' => "DATEDIFF_BIG(SECOND, '1970-01-01', SYSUTCDATETIME())",
+            default => 'UNIX_TIMESTAMP()',
+        };
+        $sql = str_ireplace('%%NOW%%', $nowexpr, $sql);
 
         // Token %%EPOCH(datetime)%% — a datetime literal/expression → Unix epoch int, in the live dialect.
         // String literals get Postgres's explicit TIMESTAMP cast so the value reads as a datetime;
         // other expressions are wrapped in parens to preserve precedence. (Use %%NOW%% for "now".)
         $sql = preg_replace_callback(
             '/%%EPOCH\(\s*(.+?)\s*\)%%/i',
-            static function (array $m) use ($postgres): string {
+            static function (array $m) use ($postgres, $mssql): string {
                 $arg = $m[1];
+                if ($mssql) {
+                    $isliteral = preg_match("/^'(?:[^']|'')*'$/", $arg) === 1;
+                    return "DATEDIFF_BIG(SECOND, '1970-01-01', " . ($isliteral ? $arg : "({$arg})") . ')';
+                }
                 if (!$postgres) {
                     return "UNIX_TIMESTAMP({$arg})";
                 }
@@ -433,12 +523,19 @@ RULES;
         // a comma); it defaults to ',' to match MySQL's native default. Postgres string_agg requires text
         // input, so expr is cast to text (harmless on already-text columns); MySQL coerces implicitly. Pure
         // SQL rewrite — the result introspects as plain text, so no columnsmeta / display callback.
+        // SQL Server uses STRING_AGG(CAST(expr AS NVARCHAR(MAX)), sep) (2017+), which has no DISTINCT form.
         $sql = preg_replace_callback(
             '/%%GROUP_CONCAT\(\s*(DISTINCT\s+)?(' . self::TOKEN_EXPR . ')\s*(?:,\s*(\'(?:[^\']|\'\')*\'))?\s*\)%%/i',
-            static function (array $m) use ($postgres): string {
+            static function (array $m) use ($postgres, $mssql): string {
                 $distinct = $m[1] ?? '';
                 $expr     = $m[2];
                 $sep      = ($m[3] ?? '') !== '' ? $m[3] : "','";
+                if ($mssql) {
+                    if ($distinct !== '') {
+                        throw new \moodle_exception('errgroupconcatdistinctmssql', 'report_sql');
+                    }
+                    return "STRING_AGG(CAST(({$expr}) AS NVARCHAR(MAX)), {$sep})";
+                }
                 return $postgres
                     ? "string_agg({$distinct}({$expr})::text, {$sep})"
                     : "GROUP_CONCAT({$distinct}{$expr} SEPARATOR {$sep})";

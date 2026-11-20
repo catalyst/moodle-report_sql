@@ -235,11 +235,10 @@ class validator {
             self::check_join_conditions($tree, $stripped);
         }
 
-        global $CFG;
-        $dbtype = $CFG->dbtype ?? 'mysqli';
+        $family = $DB->get_dbfamily();
 
-        // Warn about MySQL-specific date functions that will fail on PostgreSQL.
-        if ($dbtype === 'pgsql') {
+        // Warn about MySQL-specific date functions that will not work outside MySQL/MariaDB.
+        if ($family !== 'mysql') {
             foreach (self::MYSQL_DATE_FUNCTIONS as $fn) {
                 if (preg_match('/\b' . $fn . '\s*\(/i', $stripped)) {
                     self::$warnings[] = get_string('warnmysqldatefn', 'report_sql', $fn);
@@ -251,13 +250,19 @@ class validator {
             // than warn, view::normalise_aliases() lowercases them at view-build time.
         }
 
-        // Error on PostgreSQL-specific date/time functions when running MySQL/MariaDB.
-        if ($dbtype !== 'pgsql') {
+        // Error on PostgreSQL-specific date/time functions when running any other database.
+        if ($family !== 'postgres') {
             foreach (self::PGSQL_DATE_FUNCTIONS as $fn) {
                 if (preg_match('/\b' . preg_quote($fn, '/') . '\s*\(/i', $stripped)) {
                     throw new \moodle_exception('errpgsqldatefn', 'report_sql', '', $fn);
                 }
             }
+        }
+
+        // SQL Server's STRING_AGG has no DISTINCT form, so the %%GROUP_CONCAT(DISTINCT ...)%% token cannot be
+        // resolved there.
+        if ($family === 'mssql' && preg_match('/%%GROUP_CONCAT\(\s*DISTINCT\b/i', $stripped)) {
+            throw new \moodle_exception('errgroupconcatdistinctmssql', 'report_sql');
         }
 
         return rtrim($sql, "; \t\n\r");

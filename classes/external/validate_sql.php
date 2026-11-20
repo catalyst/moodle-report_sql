@@ -74,15 +74,13 @@ class validate_sql extends external_api {
         // compiledsql we return on error is the string the DB error line numbers refer to.
         $resolved = view::compile($validated);
 
-        // Syntax/table/column check — LIMIT 1 fetches a single row so the select-list
-        // expressions are actually evaluated, catching row-dependent runtime errors
-        // (e.g. to_char() on a bigint with a date mask) that LIMIT 0 would let through.
-        // Wrap as a subquery so the LIMIT cannot be swallowed by a trailing line comment
-        // (`... -- note` would otherwise comment out an appended LIMIT, fetching the whole
-        // table into memory). Unlike the VIEW-create check below, a row dry-run does not care
-        // about duplicate output column names, so wrapping is safe here.
+        // Syntax/table/column check — a single-row fetch evaluates the select-list expressions, catching
+        // row-dependent runtime errors (e.g. to_char() on a bigint with a date mask) that LIMIT 0 would let
+        // through. Wrap as a subquery, with the SQL on its own lines, so a trailing line comment in the
+        // author SQL cannot swallow the closing parenthesis. Unlike the VIEW-create check below, a row
+        // dry-run does not care about duplicate output column names, so wrapping is safe here.
         try {
-            $DB->get_records_sql("SELECT * FROM ({$resolved}) rs_dryrun LIMIT 1", []);
+            $DB->get_records_sql("SELECT * FROM (\n{$resolved}\n) rs_dryrun", [], 0, 1);
         } catch (\dml_exception $e) {
             $detail = $e->error ?: ($e->debuginfo ?: $e->getMessage());
             return ['ok' => false, 'error' => validator::clean_error($detail), 'compiledsql' => $resolved];

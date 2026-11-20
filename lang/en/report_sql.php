@@ -255,6 +255,7 @@ $string['errdeniedfunction'] = 'Disallowed function: {$a}. Functions that execut
 $string['errdeniedtable'] = 'Disallowed table: {$a}';
 $string['errdropview'] = 'Could not drop database view: {$a}';
 $string['errduplicatecolumn'] = 'Joined tables share duplicate column names (e.g. both have "id"). Replace SELECT * with explicit column aliases: SELECT u.id AS userid, fp.id AS postid, ...';
+$string['errgroupconcatdistinctmssql'] = '%%GROUP_CONCAT(DISTINCT ...)%% is not supported on Microsoft SQL Server, which has no DISTINCT form of STRING_AGG. Remove DISTINCT, or select the distinct values in a subquery first.';
 $string['errimportempty'] = 'The export file contains no SQL data sources.';
 $string['errimportformat'] = 'This file is not a valid SQL Report export.';
 $string['errjoinnoon'] = 'A JOIN is missing its ON (or USING) condition. Each JOIN needs a join condition, e.g. JOIN {user_enrolments} ue ON ue.userid = u.id';
@@ -266,7 +267,7 @@ $string['errnotselect'] = 'Only SELECT queries are allowed.';
 $string['errpagecourseambiguous'] = 'A SQL data source may carry only one %%PAGECOURSE(expr)%% token, and its expression must resolve to a named output column. Use a single %%PAGECOURSE()%% marking the column that holds a course id, and give it an alias, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... FROM {course} c.';
 $string['errpagecourseunresolved'] = 'The %%PAGECOURSE()%% token could not be matched to an output column named "{$a}". Give the marked column an explicit alias so it becomes a named view column, e.g. SELECT %%PAGECOURSE(c.id)%% AS courseid, ... — publishing was stopped rather than leave the page-course filter unapplied.';
 $string['errparse'] = 'The SQL could not be parsed: {$a}';
-$string['errpgsqldatefn'] = 'PostgreSQL-only function {$a} is not supported by MySQL. Use a cross-database equivalent.';
+$string['errpgsqldatefn'] = 'PostgreSQL-only function {$a} is not supported by this database. Use a cross-database equivalent.';
 $string['errplaceholder'] = 'The SQL contains an unfilled placeholder "{$a}". Replace it with a real value before saving — e.g. change "l.userid = ##" to "l.userid = 2".';
 $string['errplaceholderuserid'] = 'The SQL contains "{$a}", which is not a supported placeholder. There is no per-viewer placeholder because the report runs from a fixed database view. To restrict the report to the rows for whoever opens it, either wrap the user-id column in the SQL with %%VIEWER(...)%% — e.g. SELECT %%VIEWER(u.id)%% AS viewerid, ... — or remove "{$a}" and select the user-id column in the "Restrict to viewing user" field at the end of this form. Either way the per-user filter is applied automatically at run time.';
 $string['errqualifiedtable'] = 'Schema-qualified table reference "{$a}" is not allowed. SQL data sources may only read the site\'s own tables using Moodle\'s {tablename} syntax; cross-schema or cross-database references (e.g. information_schema.columns) are blocked.';
@@ -522,4 +523,4 @@ $string['visible_help'] = 'Controls whether this published SQL data source appea
 For finer-grained access control, use the Audiences feature in Report Builder after publishing: open the report, go to the Audience tab, and restrict by cohort, role, or individual user.';
 $string['warnlinkoffsite'] = 'The %%LINK%% path \'{$a}\' is not site-relative, so that column will show plain text instead of a link. Use a path starting with / (for example /user/view.php?id={}) — links to other sites are not allowed.';
 $string['warnlinkunnamed'] = 'The %%LINK%% token on \'{$a}\' has no output column name, so that column will show plain text instead of a link. Give it an alias, for example %%LINK(...)%% AS profile.';
-$string['warnmysqldatefn'] = 'MySQL-only function {$a} may not work on PostgreSQL. Use a cross-database equivalent.';
+$string['warnmysqldatefn'] = 'MySQL-only function {$a} may not work on this database. Use a cross-database equivalent.';

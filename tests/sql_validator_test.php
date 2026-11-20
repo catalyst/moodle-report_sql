@@ -151,8 +151,14 @@ final class sql_validator_test extends \advanced_testcase {
     }
 
     public function test_group_concat_token_is_supported(): void {
+        global $DB;
         // Token %%GROUP_CONCAT(...)%% is recognised by shape, so validation must not reject it as an
-        // unfilled placeholder (including the DISTINCT + comma-in-separator form).
+        // unfilled placeholder (including the DISTINCT + comma-in-separator form). SQL Server has no DISTINCT
+        // form of STRING_AGG, so there the DISTINCT form is rejected with a clear error instead.
+        if ($DB->get_dbfamily() === 'mssql') {
+            $this->expectException(\moodle_exception::class);
+            $this->expectExceptionMessage(get_string('errgroupconcatdistinctmssql', 'report_sql'));
+        }
         $this->assertNotEmpty(
             validator::validate(
                 "SELECT cc.id, %%GROUP_CONCAT(DISTINCT c.format, ', ')%% AS formats "
