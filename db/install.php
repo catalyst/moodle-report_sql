@@ -71,7 +71,9 @@ function xmldb_report_sql_install(): void {
             $oldview = $CFG->prefix . $oldrec->viewname;
             $newview = $CFG->prefix . str_replace('local_adhocreports_v_', 'report_sql_v_', $oldrec->viewname);
             try {
-                $DB->change_database_structure("CREATE OR REPLACE VIEW {$newview} AS SELECT * FROM {$oldview}");
+                $DB->change_database_structure(
+                    \report_sql\local\sql\view::create_or_replace_ddl($newview, "SELECT * FROM {$oldview}")
+                );
             } catch (\dml_exception $e) {
                 debugging('report_sql install: could not recreate view ' . $newview . ': ' . $e->getMessage());
             }
